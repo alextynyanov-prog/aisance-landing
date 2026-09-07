@@ -590,7 +590,14 @@ h1,h2,h3{ margin:0; font-weight:300 }
 .shot__frame::before{ width:15px; height:1px; transform:translate(-50%,-50%) }
 .shot__frame::after{ width:1px; height:15px; transform:translate(-50%,-50%) }
 .shot__frame:has(img)::before, .shot__frame:has(img)::after,
-.shot__frame:has(video)::before, .shot__frame:has(video)::after{ content:none }
+.shot__frame:has(video)::before, .shot__frame:has(video)::after,
+.shot__frame:has(.shot__brief)::before, .shot__frame:has(.shot__brief)::after{ content:none }
+.shot__brief{
+  display:flex; align-items:center; height:100%;
+  padding:clamp(16px,2vw,24px); box-sizing:border-box;
+  font-size:.78rem; line-height:1.6; color:var(--text-3);
+}
+.shot__frame:has(img) .shot__brief, .shot__frame:has(video) .shot__brief{ display:none }
 .shot__frame:has(img), .shot__frame:has(video){ background:var(--bg-alt) }
 .shot figcaption{
   font-family:var(--f-display); font-size:.62rem; letter-spacing:.24em;
@@ -603,6 +610,13 @@ h1,h2,h3{ margin:0; font-weight:300 }
 
 /* ---------- VIII. обо мне ---------- */
 #about .ticker{ margin-top:clamp(40px,6vh,72px) }
+.about__side{ display:flex; flex-direction:column; align-items:flex-start }
+.shot--portrait{
+  width:100%; max-width:330px;
+  margin-top:clamp(26px,4vh,44px);
+}
+.shot--portrait .shot__frame{ aspect-ratio:4/5 }
+@media (max-width:899px){ .shot--portrait{ max-width:280px } }
 
 /* ============================================================
    Появление / motion
