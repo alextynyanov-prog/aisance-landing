@@ -1,4 +1,5 @@
+# ВРЕМЕННО: полный запрет индексации на время предпросмотра.
+# Перед публичным запуском на aisance.space заменить на боевую версию
+# (Allow: / + Sitemap) и снять <meta name="robots"> из index.html.
 User-agent: *
-Allow: /
-
-Sitemap: https://aisance.space/sitemap.xml
+Disallow: /
