@@ -1,0 +1,57 @@
+/* AISANCE · вариант 2 — слой фоновой сцены «Цепь».
+   Подключается поверх style.css варианта 1 и меняет только объясняющую часть:
+   hero → I Компенсация → II Смещение → III Оптика → IV Метод. */
+
+.chain-gl, .chain-svg{
+  position:fixed; inset:0; width:100%; height:100%;
+  z-index:0; pointer-events:none; display:block;
+}
+.hero{ z-index:1 }
+
+/* секции объясняющей части пропускают сцену; ритм тёмных полос сохранён полупрозрачностью */
+.scene-zone{ background:transparent }
+.scene-zone.sec--alt{ background:color-mix(in srgb, var(--bg-alt) 62%, transparent) }
+
+/* ---------- мобильный SVG-вариант ---------- */
+.chain-svg .ch-line{
+  fill:none; stroke:var(--text); stroke-opacity:.3; stroke-width:1;
+  vector-effect:non-scaling-stroke; stroke-linecap:round;
+}
+.chain-svg .ch-node{ fill:var(--text); fill-opacity:.75 }
+.chain-svg .ch-ring{
+  fill:none; stroke:var(--text); stroke-width:1; vector-effect:non-scaling-stroke; opacity:0;
+}
+.chain-svg .ch-halo{
+  fill:var(--accent); opacity:0;
+  transform-box:fill-box; transform-origin:center;
+  animation:ch-pulse 2.6s ease-in-out infinite; animation-play-state:paused;
+}
+.chain-svg .ch-halo.is-live{ animation-play-state:running }
+@keyframes ch-pulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.25) } }
+
+/* ---------- II. Смещение: плоская схема уступает место сцене,
+   подписи «здесь причина / здесь болит» остаются и совпадают с ней по цвету ---------- */
+.diverge__svg{ display:none }
+.diverge::before{ content:none }
+.diverge{
+  display:grid; gap:26px clamp(30px,6vw,100px);
+  margin:clamp(40px,8vh,96px) 0 clamp(34px,6vh,64px);
+}
+@media (min-width:761px){ .diverge{ grid-template-columns:1fr 1fr } }
+.diverge .diverge__mark,
+.diverge .diverge__mark--cause,
+.diverge .diverge__mark--pain{
+  position:relative; inset:auto; max-width:34ch; margin:0;
+  padding-left:26px; text-align:left;
+}
+.diverge .diverge__mark::before{
+  content:''; position:absolute; left:0; top:.42em; width:9px; height:9px; border-radius:50%;
+}
+.diverge .diverge__mark--cause::before{ border:1px solid var(--text-3); background:transparent }
+.diverge .diverge__mark--pain::before{ background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent) }
+.diverge .diverge__mark--cause b{ color:var(--text-2) }
+.diverge .diverge__mark--pain b{ color:var(--accent) }
+
+@media (prefers-reduced-motion:reduce){
+  .chain-svg .ch-halo{ animation:none }
+}
