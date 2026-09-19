@@ -1,111 +1,24 @@
-/* AISANCE · вариант 2.1 — фоновая сцена «Цепь».
-   Условный силуэт в профиль и три миофасциальные линии внутри него:
-   задняя поверхностная, передняя поверхностная и спиральная.
-   Одна модель состояния, привязанная к скроллу, и два способа отрисовки:
-   Three.js на десктопе и лёгкий SVG на телефонах и планшетах.
-   Только контур и линии — без мышц, костей, органов и обозначений патологии. */
+/* AISANCE · вариант 3 — фоновая сцена «Течение».
+   Несколько тонких линий на трёх глубинах, непрерывно текущих, как росчерк логотипа,
+   который сносит мягким течением. Никаких фигур и антропоморфных форм — только линии.
+
+   Сюжет метода разыгрывается на передней линии:
+   покой → сигнал (пульсирующая точка) и заминка потока в другом месте той же линии →
+   от заминки расходится волна, возвращающая плавность; точка гаснет, когда волна до неё доходит →
+   снова спокойное синхронное течение.
+
+   Десктоп — Three.js (линии Line2 с толщиной в экранных пикселях, кадр сохраняется в буфере).
+   Телефоны — лёгкий SVG. После «Метода» сцена уступает место эху — движущимся при скролле
+   SVG-разделителям между разделами, без WebGL. */
 
 const CREAM = '#E9E4D6';
 const ACCENT = '#7FA087';
 const BG = '#161E19';
 
-/* ---------- геометрия (единицы тела: рост 8, пол y = 0, лицом вправо) ---------- */
-
-// Контур: от середины стопы — пятка, спина, затылок, лицо, грудь, нога, носок.
-// Концы затухают, как хвосты росчерка, — контур не замкнут.
-const CONTOUR = [
-  [0.10, 0.00], [-0.22, 0.02], [-0.33, 0.14], [-0.27, 0.55], [-0.33, 1.05], [-0.42, 1.55],
-  [-0.33, 2.05], [-0.27, 2.30], [-0.36, 2.90], [-0.42, 3.45], [-0.56, 3.85], [-0.48, 4.20],
-  [-0.34, 4.60], [-0.40, 5.10], [-0.50, 5.60], [-0.46, 6.05], [-0.28, 6.40], [-0.22, 6.70],
-  [-0.34, 7.05], [-0.38, 7.40], [-0.28, 7.76], [0.02, 7.96], [0.30, 7.84], [0.45, 7.52], [0.47, 7.28],
-  [0.58, 7.10], [0.47, 6.94], [0.44, 6.76], [0.22, 6.66], [0.18, 6.45], [0.26, 6.20],
-  [0.46, 5.85], [0.43, 5.35], [0.36, 5.00], [0.40, 4.55], [0.40, 4.15], [0.33, 3.80],
-  [0.40, 3.20], [0.32, 2.60], [0.30, 2.28], [0.20, 2.00], [0.17, 1.20], [0.12, 0.45],
-  [0.35, 0.22], [0.72, 0.07], [0.80, 0.02], [0.55, 0.00], [0.30, 0.00]
-];
-const ARM = [[0.02, 6.08], [-0.03, 5.50], [-0.02, 4.95], [0.06, 4.40], [0.12, 3.95], [0.16, 3.58]];
-
-// Задняя поверхностная линия: подошва — пятка — икра — подколенная область —
-// задняя поверхность бедра — крестец — вдоль позвоночника — затылок — через свод черепа ко лбу.
-const SBL = [
-  [0.52, 0.05], [-0.20, 0.10], [-0.20, 0.55], [-0.30, 1.50], [-0.22, 2.30], [-0.30, 3.00],
-  [-0.40, 4.00], [-0.27, 4.60], [-0.38, 5.50], [-0.18, 6.60], [-0.24, 7.10], [-0.20, 7.50], [0.02, 7.80], [0.30, 7.62]
-];
-// Передняя поверхностная линия: тыл стопы — голень — колено — бедро — лобок —
-// живот — грудина — по передней поверхности шеи к сосцевидному отростку.
-const SFL = [
-  [0.66, 0.10], [0.08, 0.50], [0.10, 1.30], [0.20, 2.30], [0.28, 3.10], [0.28, 3.85],
-  [0.30, 4.70], [0.34, 5.60], [0.16, 6.25], [-0.14, 7.00]
-];
-// Спиральная линия: огибает тело — от затылка через лопатку к рёбрам спереди,
-// через живот к противоположному бедру, вниз по голени под свод стопы и обратно по задней стороне.
-const SPIRAL = [
-  [-0.20, 7.10, 0.25], [-0.35, 6.20, -0.10], [0.30, 5.30, -0.30], [0.30, 4.50, 0.10],
-  [0.25, 3.90, 0.30], [0.00, 3.00, 0.38], [0.12, 1.80, 0.15], [0.15, 0.12, -0.10],
-  [-0.10, 1.20, -0.25], [-0.28, 2.80, -0.20], [-0.45, 4.10, 0.00]
-];
-
-// На задней линии: ограничение — в области икры (периферия), сигнал — в пояснице.
-const CAUSE_AT = [-0.30, 1.50];
-const PAIN_AT = [-0.27, 4.60];
-const SAG = [0.26, -0.12, 0];     // «проседание» участка внутрь и вниз
-const BUMP = 0.055;               // ширина проседающего участка вдоль линии (доля длины)
-
-/* ---------- математика ---------- */
 const clamp = v => (v < 0 ? 0 : v > 1 ? 1 : v);
 const smooth = v => { v = clamp(v); return v * v * (3 - 2 * v); };
-const to3 = p => [p[0], p[1], p[2] || 0];
+const gauss = (x, w) => Math.exp(-(x * x) / (w * w));
 
-function catmull(pts, seg) {
-  const out = [];
-  const n = pts.length;
-  for (let i = 0; i < n - 1; i++) {
-    const p0 = pts[i ? i - 1 : 0], p1 = pts[i], p2 = pts[i + 1], p3 = pts[i + 2 < n ? i + 2 : n - 1];
-    for (let j = 0; j < seg; j++) {
-      const t = j / seg, t2 = t * t, t3 = t2 * t;
-      const o = [0, 0, 0];
-      for (let d = 0; d < 3; d++) {
-        o[d] = 0.5 * (2 * p1[d] + (-p0[d] + p2[d]) * t +
-          (2 * p0[d] - 5 * p1[d] + 4 * p2[d] - p3[d]) * t2 +
-          (-p0[d] + 3 * p1[d] - 3 * p2[d] + p3[d]) * t3);
-      }
-      out.push(o);
-    }
-  }
-  out.push(pts[n - 1].slice());
-  return out;
-}
-
-// Сэмплирование с параметром s ∈ [0,1] по длине дуги.
-function sample(ctrl, seg) {
-  const pts = catmull(ctrl.map(to3), seg);
-  const L = [0];
-  for (let i = 1; i < pts.length; i++) {
-    const a = pts[i - 1], b = pts[i];
-    L.push(L[i - 1] + Math.hypot(b[0] - a[0], b[1] - a[1], b[2] - a[2]));
-  }
-  const tot = L[L.length - 1];
-  return { pts, s: L.map(v => v / tot) };
-}
-function nearestS(line, p) {
-  let best = 0, bd = Infinity;
-  line.pts.forEach((q, i) => { const d = Math.hypot(q[0] - p[0], q[1] - p[1]); if (d < bd) { bd = d; best = i; } });
-  return line.s[best];
-}
-
-const G = {
-  contour: sample(CONTOUR, 8),
-  arm: sample(ARM, 10),
-  sbl: sample(SBL, 16),
-  sfl: sample(SFL, 12),
-  spiral: sample(SPIRAL, 14)
-};
-const S_CAUSE = nearestS(G.sbl, CAUSE_AT);
-const S_PAIN = nearestS(G.sbl, PAIN_AT);
-const SPAN = S_PAIN - S_CAUSE;
-const GHOST_IDX = G.sbl.s.map((v, i) => (Math.abs(v - S_CAUSE) < BUMP * 2.2 ? i : -1)).filter(i => i >= 0);
-
-/* ---------- скролл → состояние ---------- */
 const secComp = document.getElementById('compensation');
 const secMethod = document.getElementById('method');
 const secProcess = document.getElementById('process');
@@ -113,62 +26,107 @@ const motion = !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const DEBUG = /[?&]chain-debug\b/.test(location.search);
 let forced = null;
 
+/* ---------- скролл → состояние ---------- */
 function readScroll() {
-  if (forced) return forced;
   const vh = window.innerHeight;
-  const c = secComp.getBoundingClientRect();
   const m = secMethod.getBoundingClientRect();
+  const zoneEnd = m.bottom + window.scrollY - vh;               // где заканчивается «Метод»
+  const base = {
+    scroll: window.scrollY,
+    zone: clamp(window.scrollY / Math.max(1, zoneEnd)),          // 0..1 по объясняющей части
+    hero: 1 - smooth(window.scrollY / (vh * 0.45))               // hero ещё на экране
+  };
+  if (forced) return { ...base, ...forced };
+  const c = secComp.getBoundingClientRect();
   const p = secProcess.getBoundingClientRect();
   return {
+    ...base,
     diverge: smooth((vh * 0.9 - c.top) / (c.height * 0.65)),
     realign: smooth((vh * 0.55 - m.top) / (m.height * 0.75)),
     fade: smooth((vh * 0.95 - p.top) / (vh * 0.55))
   };
 }
 
-// Лёгкое дыхание: грудная клетка чуть расширяется вперёд-назад.
-function breathe(p, t) {
-  if (!motion) return p;
-  const w = Math.exp(-Math.pow((p[1] - 5.4) / 0.9, 2));
-  return [p[0] * (1 + 0.02 * w * Math.sin(t * 0.55)), p[1], p[2]];
+/* ---------- модель течения ----------
+   Координаты мировые: x — горизонталь, y — вертикаль, z — глубина слоя.
+   Каждая линия — сумма медленных синусоид (форма росчерка), фаза которой
+   течёт со временем и сдвигается скроллом: передний слой — быстрее всех (параллакс). */
+const LAYERS = [
+  { name: 'back', z: -6, width: 1.0, level: 0.15, amp: 0.30, drift: 0.25, scrollPhase: 0.0007, speed: 0.55,
+    lines: [{ y: 0.2, ph: 0.4 }, { y: -1.3, ph: 2.1 }, { y: -2.9, ph: 4.0 }] },
+  { name: 'mid', z: -2.5, width: 1.3, level: 0.3, amp: 0.36, drift: 0.55, scrollPhase: 0.0015, speed: 0.75,
+    lines: [{ y: -0.9, ph: 1.2 }, { y: -2.35, ph: 3.3 }] },
+  { name: 'front', z: 0, width: 1.9, level: 0.62, amp: 0.42, drift: 1.0, scrollPhase: 0.0030, speed: 1.0,
+    lines: [{ y: -1.1, ph: 0.0 }] }
+];
+const N = 180; // точек на линию
+
+function flowY(x, t, L, line, j, desync) {
+  const sp = motion ? L.speed : 0;
+  const ph = line.ph + desync;
+  return 0.55 * Math.sin(0.42 * x + ph + t * 0.35 * sp) +
+         0.28 * Math.sin(0.93 * x - t * 0.23 * sp + 1.7 * j + ph * 0.5) +
+         0.12 * Math.sin(1.8 * x + t * 0.5 * sp + j);
 }
 
-/* Состояние: проседание участка задней линии у икры, сигнал в пояснице.
-   Выравнивание идёт волной вдоль задней линии от икры вверх; сигнал гаснет,
-   когда волна до него доходит, — как следствие, а не от прямого воздействия. */
-function solve(s, t) {
-  const front = s.realign * (SPAN + 0.12);
+/* Сюжет на передней линии.
+   xH — место заминки (причина), xS — место сигнала. Волна выравнивания
+   расходится от заминки в обе стороны; до сигнала она доходит последней. */
+function story(s, t, span) {
+  const reach = s.realign * (span + 0.9);        // сколько прошла волна от заминки
   const waveOn = s.diverge * Math.sin(Math.PI * s.realign);
-  const sbl = [], dim = [], wave = [];
-  let causeK = 0;
-  for (let j = 0; j < G.sbl.pts.length; j++) {
-    const v = G.sbl.s[j];
-    const aligned = smooth((front - Math.abs(v - S_CAUSE)) / 0.05);
-    const k = s.diverge * Math.exp(-Math.pow((v - S_CAUSE) / BUMP, 2)) * (1 - aligned);
-    if (k > causeK) causeK = k;
-    const p = G.sbl.pts[j];
-    sbl.push(breathe([p[0] + SAG[0] * k, p[1] + SAG[1] * k, p[2]], t));
-    dim.push(k);
-    wave.push(waveOn * Math.exp(-Math.pow((v - (S_CAUSE + front)) / 0.05, 2)));
-  }
-  const painA = smooth((front - SPAN - 0.02) / 0.05);
-  const emph = s.diverge * (1 - smooth((s.realign - 0.75) / 0.25));
-  let pi = 0, bd = Infinity, wi = 0, wd = Infinity;
-  G.sbl.s.forEach((v, i) => {
-    const d = Math.abs(v - S_PAIN); if (d < bd) { bd = d; pi = i; }
-    const e = Math.abs(v - Math.min(S_PAIN, S_CAUSE + front)); if (e < wd) { wd = e; wi = i; }
-  });
+  const signalReached = smooth((reach - span - 0.1) / 0.7);
+  // «Спотыкание»: поток рывками теряет плавность — короткие толчки с неровным ритмом
+  const stutter = motion ? 0.45 + 0.55 * Math.pow(Math.max(0, Math.sin(t * 2.1)), 3) + 0.2 * Math.sin(t * 5.3) : 0.8;
   return {
-    contour: G.contour.pts.map(p => breathe(p, t)),
-    arm: G.arm.pts.map(p => breathe(p, t)),
-    sfl: G.sfl.pts.map(p => breathe(p, t)),
-    spiral: G.spiral.pts.map(p => breathe(p, t)),
-    sbl, dim, wave, causeK, emph,
-    pain: sbl[pi],
-    bead: sbl[wi], beadOn: waveOn * (1 - smooth((front - SPAN) / 0.04)),
-    glow: s.diverge * (1 - painA),
-    pulse: motion ? 1 + 0.2 * Math.sin(t * 2.3) : 1,
-    angle: 0.6 * Math.sin(Math.PI * s.realign)
+    reach, waveOn, stutter,
+    glow: s.diverge * (1 - signalReached),
+    beadOn: waveOn * (1 - signalReached),
+    desync: s.diverge * (1 - s.realign)
+  };
+}
+
+/* Точки всех линий на момент времени t при состоянии s.
+   geo — геометрия экрана: visW(z) — видимая ширина на глубине z, xH, xS — точки сюжета. */
+function solve(s, t, geo) {
+  const st = story(s, t, geo.xS - geo.xH);
+  const lines = [];
+  LAYERS.forEach(L => {
+    const half = geo.visW(L.z) * 0.56;
+    const phaseScroll = s.scroll * L.scrollPhase;                 // скролл сдвигает фазу — слои текут с разной скоростью
+    const yDrift = L.drift * (s.zone - 0.5) * 1.2;                // и расходятся по вертикали — объём
+    L.lines.forEach((line, j) => {
+      const desync = L.name === 'front' ? 0 : 0.5 * st.desync * Math.sin(t * 0.9 + j * 2.1 + L.z);
+      const pts = new Array(N), tint = new Float32Array(N);
+      for (let i = 0; i < N; i++) {
+        const u = i / (N - 1);
+        const x = -half + 2 * half * u;
+        let y = line.y + yDrift + L.amp * flowY(x, t, L, line, j, desync + phaseScroll);
+        if (L.name === 'front') {
+          const d = Math.abs(x - geo.xH);
+          const aligned = smooth((st.reach - d) / 0.7);
+          const k = s.diverge * (1 - aligned) * gauss(x - geo.xH, 0.55);
+          // заминка: мелкая неровная рябь и лёгкий провал — линия теряет плавность
+          y += k * (0.2 * st.stutter * Math.sin(10 * x - 13 * (motion ? t : 0)) - 0.14);
+          tint[i] = st.waveOn * gauss(d - st.reach, 0.35);
+        }
+        pts[i] = [x, y, L.z];
+      }
+      lines.push({ L, pts, tint });
+    });
+  });
+  const front = lines[lines.length - 1].pts;
+  const at = x => { // точка передней линии, ближайшая к x
+    let best = front[0], bd = Infinity;
+    for (const p of front) { const d = Math.abs(p[0] - x); if (d < bd) { bd = d; best = p; } }
+    return best;
+  };
+  const beadX = geo.xH + Math.min(geo.xS - geo.xH, st.reach);
+  return {
+    lines,
+    signal: at(geo.xS), glow: st.glow,
+    pulse: motion ? 1 + 0.22 * Math.sin(t * 2.4) : 1,
+    bead: at(beadX), beadOn: st.beadOn
   };
 }
 
@@ -179,153 +137,116 @@ async function startGL(canvas) {
   const { LineGeometry } = await import('three/addons/lines/LineGeometry.js');
   const { LineMaterial } = await import('three/addons/lines/LineMaterial.js');
 
-  // Кадр сохраняется в буфере: его можно прочитать и проверить обычными средствами браузера.
+  // preserveDrawingBuffer — кадр остаётся в буфере и проверяется обычным чтением пикселей.
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power', preserveDrawingBuffer: true });
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
   renderer.setClearColor(0x000000, 0);
-
   const scene = new THREE.Scene();
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100);
   camera.position.set(0, 0, 11);
-  const group = new THREE.Group();
-  scene.add(group);
-  const body = new THREE.Group();          // вращается вокруг вертикальной оси тела
-  body.position.set(0, -4, 0);
-  group.add(body);
 
   const cream = new THREE.Color(CREAM), accent = new THREE.Color(ACCENT), bg = new THREE.Color(BG);
-
-  // Линия толщиной в пикселях экрана. Обычная THREE.Line в WebGL всегда в 1 физический
-  // пиксель — на ретине это полпикселя CSS, её почти не видно.
-  function makeLine(n, width, tail, opts = {}) {
-    const geo = new LineGeometry();
-    geo.setPositions(new Float32Array(n * 3));
-    const col = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      const u = i / (n - 1);
-      const c = cream.clone().lerp(bg, tail ? 1 - smooth(Math.min(u, 1 - u) / tail) : 0);
-      col.set([c.r, c.g, c.b], i * 3);
-    }
-    geo.setColors(col);
-    // Непрозрачный материал: при полупрозрачности стыки коротких отрезков смешиваются
-    // дважды и линия выглядит пунктирной. Яркость задаётся цветом — смешиванием с фоном.
-    const mat = new LineMaterial({
-      color: 0xffffff, vertexColors: true, linewidth: width, worldUnits: false,
-      transparent: false, depthWrite: false, ...opts
-    });
-    const line = new Line2(geo, mat);
-    line.frustumCulled = false;
-    body.add(line);
-    return { line, mat, geo, base: col, n, pos: geo.attributes.instanceStart.data, colBuf: geo.attributes.instanceColorStart.data };
-  }
-  // Яркость линии level ∈ [0,1]: 0 — цвет фона, 1 — полный кремовый; mod(i, c) — поточечная поправка.
-  function writeCol(L, level, mod) {
-    const cb = L.colBuf.array, base = L.base;
-    const at = i => {
-      tmp.setRGB(base[i * 3], base[i * 3 + 1], base[i * 3 + 2]);
-      tmp.r = bg.r + (tmp.r - bg.r) * level; tmp.g = bg.g + (tmp.g - bg.g) * level; tmp.b = bg.b + (tmp.b - bg.b) * level;
-      if (mod) mod(i, tmp);
-      return tmp;
-    };
-    for (let i = 0; i < L.n - 1; i++) {
-      const o = i * 6;
-      let c = at(i); cb[o] = c.r; cb[o + 1] = c.g; cb[o + 2] = c.b;
-      c = at(i + 1); cb[o + 3] = c.r; cb[o + 4] = c.g; cb[o + 5] = c.b;
-    }
-    L.colBuf.needsUpdate = true;
-  }
   const tmp = new THREE.Color();
-  function writePos(L, pts) {
-    const a = L.pos.array;
-    for (let i = 0; i < pts.length - 1; i++) {
-      const p = pts[i], q = pts[i + 1], o = i * 6;
-      a[o] = p[0]; a[o + 1] = p[1]; a[o + 2] = p[2];
-      a[o + 3] = q[0]; a[o + 4] = q[1]; a[o + 5] = q[2];
-    }
-    L.pos.needsUpdate = true;
-  }
 
-  const L = {
-    contour: makeLine(G.contour.pts.length, 1.5, 0.05),
-    arm: makeLine(G.arm.pts.length, 1.2, 0.25),
-    sfl: makeLine(G.sfl.pts.length, 1.2, 0.08),
-    spiral: makeLine(G.spiral.pts.length, 1.1, 0.08),
-    sbl: makeLine(G.sbl.pts.length, 1.8, 0.05)
-  };
-  // Пунктир на прежней траектории проседающего участка — видно, откуда линия ушла.
-  const ghostPts = GHOST_IDX.map(i => G.sbl.pts[i]);
-  const ghost = makeLine(ghostPts.length, 1.0, 0.3, { dashed: true, dashSize: 0.05, gapSize: 0.05 });
-  writePos(ghost, ghostPts);
-  ghost.line.computeLineDistances();
-  // Линии непрозрачные, поэтому на пересечениях важен порядок: яркие рисуются поверх тусклых.
-  [L.spiral, L.sfl, ghost, L.arm, L.contour, L.sbl].forEach((l, i) => { l.line.renderOrder = i; });
-
-  // Сигнал: точка и мягкое свечение.
-  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.07, 18, 14), new THREE.MeshBasicMaterial({ color: CREAM, transparent: true, opacity: 0, depthWrite: false }));
-  body.add(dot);
-  const c2 = document.createElement('canvas');
-  c2.width = c2.height = 128;
-  const g2 = c2.getContext('2d');
-  const grd = g2.createRadialGradient(64, 64, 0, 64, 64, 64);
-  grd.addColorStop(0, 'rgba(255,255,255,1)');
-  grd.addColorStop(0.25, 'rgba(255,255,255,0.45)');
-  grd.addColorStop(1, 'rgba(255,255,255,0)');
-  g2.fillStyle = grd;
-  g2.fillRect(0, 0, 128, 128);
-  const tex = new THREE.CanvasTexture(c2);
-  tex.colorSpace = THREE.SRGBColorSpace;
-  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: ACCENT, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthWrite: false }));
-  body.add(halo);
-  // бусина на фронте волны выравнивания — видно, как волна идёт вдоль цепи
-  const bead = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0, depthWrite: false }));
-  body.add(bead);
-
-  function draw(st) {
-    writePos(L.contour, st.contour);
-    writePos(L.arm, st.arm);
-    writePos(L.sfl, st.sfl);
-    writePos(L.spiral, st.spiral);
-    writePos(L.sbl, st.sbl);
-
-    // в покое цепи едва заметны; по ходу рассказа задняя проступает
-    writeCol(L.contour, 0.62);
-    writeCol(L.arm, 0.5);
-    writeCol(L.sfl, 0.22 + 0.12 * st.emph);
-    writeCol(L.spiral, 0.16 + 0.1 * st.emph + 0.25 * Math.abs(st.angle) / 0.6);
-    // задняя линия: проседающий участок тускнеет, волна выравнивания подсвечивает её акцентом
-    writeCol(L.sbl, 0.32 + 0.6 * st.emph, (i, c) => {
-      const k = 0.78 * st.dim[i];
-      c.r += (bg.r - c.r) * k; c.g += (bg.g - c.g) * k; c.b += (bg.b - c.b) * k;
-      c.lerp(accent, Math.min(1, st.wave[i]));
-    });
-    ghost.line.visible = st.causeK > 0.02; // в покое пунктира нет вовсе — он не перекрывает линию
-    writeCol(ghost, 0.7 * st.causeK);
-
-    dot.position.set(...st.pain);
-    dot.material.opacity = st.glow;
-    dot.material.color.copy(cream).lerp(accent, st.glow);
-    dot.scale.setScalar(1 + 0.4 * st.glow * (st.pulse - 1) * 5);
-    halo.position.set(...st.pain);
-    halo.material.opacity = 0.75 * st.glow;
-    halo.scale.setScalar(1.3 * st.pulse);
-
-    bead.position.set(...st.bead);
-    bead.material.opacity = st.beadOn;
-
-    body.rotation.y = st.angle;
-    renderer.render(scene, camera);
-  }
-
+  // Геометрия экрана: видимая ширина на глубине z и точки сюжета.
+  const geo = { visW: () => 1, xH: -2, xS: 2 };
   function resize() {
     const w = window.innerWidth, h = window.innerHeight;
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
-    const visH = 2 * camera.position.z * Math.tan((camera.fov * Math.PI) / 360);
-    const visW = visH * camera.aspect;
-    // фигура — в правой трети экрана, около 80% высоты
-    group.scale.setScalar((visH * 0.8) / 8);
-    group.position.set(visW * 0.3, 0, 0);
+    const visH0 = 2 * camera.position.z * Math.tan((camera.fov * Math.PI) / 360);
+    geo.visW = z => visH0 * camera.aspect * (camera.position.z - z) / camera.position.z;
+    geo.xH = -0.24 * geo.visW(0);   // заминка — левее
+    geo.xS = 0.22 * geo.visW(0);    // сигнал — правее, на той же линии
+  }
+
+  // Линии толщиной в экранных пикселях. Непрозрачные: яркость задаётся цветом
+  // (смешиванием с фоном), чтобы стыки отрезков не давали «бисер».
+  function makeLine(width, order) {
+    const g = new LineGeometry();
+    g.setPositions(new Float32Array(N * 3));
+    g.setColors(new Float32Array(N * 3));
+    const mat = new LineMaterial({ color: 0xffffff, vertexColors: true, linewidth: width, worldUnits: false, depthWrite: false, depthTest: false });
+    const line = new Line2(g, mat);
+    line.frustumCulled = false;
+    line.renderOrder = order;
+    scene.add(line);
+    return { line, pos: g.attributes.instanceStart.data, col: g.attributes.instanceColorStart.data };
+  }
+  function write(obj, pts, level, tint) {
+    const a = obj.pos.array, c = obj.col.array;
+    const colAt = i => {
+      const u = i / (N - 1);
+      const lv = level * smooth(Math.min(u, 1 - u) / 0.12);          // концы затухают, как хвосты росчерка
+      tmp.setRGB(bg.r + (cream.r - bg.r) * lv, bg.g + (cream.g - bg.g) * lv, bg.b + (cream.b - bg.b) * lv);
+      if (tint && tint[i] > 0.01) tmp.lerp(accent, Math.min(1, tint[i]));
+      return tmp;
+    };
+    for (let i = 0; i < N - 1; i++) {
+      const p = pts[i], q = pts[i + 1], o = i * 6;
+      a[o] = p[0]; a[o + 1] = p[1]; a[o + 2] = p[2];
+      a[o + 3] = q[0]; a[o + 4] = q[1]; a[o + 5] = q[2];
+      let k = colAt(i); c[o] = k.r; c[o + 1] = k.g; c[o + 2] = k.b;
+      k = colAt(i + 1); c[o + 3] = k.r; c[o + 4] = k.g; c[o + 5] = k.b;
+    }
+    obj.pos.needsUpdate = true;
+    obj.col.needsUpdate = true;
+  }
+
+  let order = 0;
+  const objs = [];
+  LAYERS.forEach(L => L.lines.forEach(() => objs.push(makeLine(L.width, order++))));
+  const invite = makeLine(1.0, -1); // линия-приглашение: утекает за нижний край и появляется снова
+
+  // Сигнал: точка и мягкое свечение; бусина на фронте волны.
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.075, 20, 16), new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0, depthTest: false }));
+  dot.renderOrder = 50;
+  scene.add(dot);
+  const hc = document.createElement('canvas');
+  hc.width = hc.height = 128;
+  const hg = hc.getContext('2d');
+  const grd = hg.createRadialGradient(64, 64, 0, 64, 64, 64);
+  grd.addColorStop(0, 'rgba(255,255,255,1)');
+  grd.addColorStop(0.25, 'rgba(255,255,255,0.45)');
+  grd.addColorStop(1, 'rgba(255,255,255,0)');
+  hg.fillStyle = grd;
+  hg.fillRect(0, 0, 128, 128);
+  const tex = new THREE.CanvasTexture(hc);
+  tex.colorSpace = THREE.SRGBColorSpace;
+  const halo = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, color: ACCENT, transparent: true, opacity: 0, blending: THREE.AdditiveBlending, depthTest: false }));
+  halo.renderOrder = 49;
+  scene.add(halo);
+  const bead = new THREE.Mesh(new THREE.SphereGeometry(0.06, 16, 12), new THREE.MeshBasicMaterial({ color: ACCENT, transparent: true, opacity: 0, depthTest: false }));
+  bead.renderOrder = 51;
+  scene.add(bead);
+
+  function draw(s, t) {
+    const st = solve(s, t, geo);
+    st.lines.forEach((ln, i) => write(objs[i], ln.pts, ln.L.level, ln.tint));
+
+    // приглашение листать: линия заднего слоя плавно утекает вниз за край и возвращается
+    const u = motion ? (t % 10) / 10 : 0.3;
+    const L = LAYERS[0], half = geo.visW(L.z) * 0.56;
+    const inviteY = 0.2 - 5.8 * u * u;
+    const ipts = new Array(N);
+    for (let i = 0; i < N; i++) {
+      const x = -half + 2 * half * (i / (N - 1));
+      ipts[i] = [x, inviteY + L.amp * flowY(x, t, L, { ph: 5.2 }, 3, 0), L.z];
+    }
+    write(invite, ipts, 0.24 * s.hero * smooth(u / 0.12));
+    invite.line.visible = s.hero > 0.01;
+
+    dot.position.set(...st.signal);
+    dot.material.opacity = st.glow;
+    dot.scale.setScalar(1 + 0.3 * st.glow * (st.pulse - 1) * 4);
+    halo.position.set(...st.signal);
+    halo.material.opacity = 0.8 * st.glow;
+    halo.scale.setScalar(1.4 * st.pulse);
+    bead.position.set(...st.bead);
+    bead.material.opacity = st.beadOn;
+
+    renderer.render(scene, camera);
   }
 
   const t0 = performance.now();
@@ -334,9 +255,9 @@ async function startGL(canvas) {
     raf = 0;
     const s = readScroll();
     canvas.style.opacity = String(1 - s.fade);
-    if (s.fade >= 1 || document.hidden) return; // сцена ушла или вкладка скрыта — не рендерим
-    draw(solve(s, (now - t0) / 1000));
-    if (motion) raf = requestAnimationFrame(tick);
+    if (s.fade >= 1 || document.hidden) return;   // сцена ушла или вкладка скрыта — не рендерим
+    draw(s, (now - t0) / 1000);
+    if (motion) raf = requestAnimationFrame(tick); // течение непрерывно, пока сцена на экране
   }
   const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
   window.addEventListener('scroll', wake, { passive: true });
@@ -344,35 +265,45 @@ async function startGL(canvas) {
   document.addEventListener('visibilitychange', wake);
   resize();
   wake();
-  const now = () => { const s = readScroll(); canvas.style.opacity = String(1 - s.fade); draw(solve(s, (performance.now() - t0) / 1000)); };
-  return { wake, now };
+  return { wake, now: () => { const s = readScroll(); canvas.style.opacity = String(1 - s.fade); draw(s, (performance.now() - t0) / 1000); } };
 }
 
 /* ---------------- SVG (телефоны, планшеты, запасной вариант) ----------------
-   Тот же силуэт, упрощённый: контур, рука, задняя и передняя линии, без спиральной
-   и без вращения. Перерисовка только на скролл — без постоянного цикла анимации. */
+   Два слоя: передняя линия с сюжетом и тихая задняя. Форма пересчитывается только на скролл;
+   непрерывное течение — CSS-анимацией группы (работает на компоновщике, без JS-цикла). */
 function startSVG(svg) {
   const NS = 'http://www.w3.org/2000/svg';
-  const el = (tag, attrs) => {
+  const el = (tag, attrs, parent = svg) => {
     const e = document.createElementNS(NS, tag);
     for (const k in attrs) e.setAttribute(k, attrs[k]);
-    svg.appendChild(e);
+    parent.appendChild(e);
     return e;
   };
-  const d = pts => 'M' + pts.map(p => p[0].toFixed(3) + ' ' + (-p[1]).toFixed(3)).join('L');
-  svg.setAttribute('viewBox', '-3.9 -8.45 5 8.9'); // фигура смещена вправо, под правую часть текста
-  svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+  const backG = el('g', { class: 'fl-layer fl-back' });
+  const inviteG = el('g', { class: 'fl-invite' });
+  const frontG = el('g', { class: 'fl-layer fl-front' });
+  const back = el('path', { class: 'fl-line fl-line--back' }, backG);
+  const invite = el('path', { class: 'fl-line fl-line--back' }, inviteG);
+  const front = el('path', { class: 'fl-line fl-line--front' }, frontG);
+  const hitch = el('path', { class: 'fl-line fl-line--front fl-hitch' }, frontG);
+  const wave = el('path', { class: 'fl-wave' }, frontG);
+  const halo = el('circle', { class: 'fl-halo', r: 16 }, frontG);
+  const dot = el('circle', { class: 'fl-dot', r: 4 }, frontG);
+  const bead = el('circle', { class: 'fl-dot', r: 3.5 }, frontG);
 
-  el('path', { class: 'ch-body', d: d(catmull(CONTOUR.map(to3), 4)) });
-  el('path', { class: 'ch-body ch-arm', d: d(catmull(ARM.map(to3), 5)) });
-  el('path', { class: 'ch-front', d: d(G.sfl.pts) });
-  const ghost = el('path', { class: 'ch-ghost', d: d(GHOST_IDX.map(i => G.sbl.pts[i])) });
-  const back = el('path', { class: 'ch-back' });
-  const sag = el('path', { class: 'ch-sag' });
-  const wave = el('path', { class: 'ch-wave' });
-  const halo = el('circle', { class: 'ch-halo', r: 0.34 });
-  const dot = el('circle', { class: 'ch-dot', r: 0.08 });
-  const bead = el('circle', { class: 'ch-dot', r: 0.07 });
+  // Плоская версия геометрии в пикселях экрана.
+  let W = 1, H = 1;
+  const PX = 60; // пикселей на мировую единицу
+  const geo = { visW: () => 1, xH: 0, xS: 0 };
+  function resize() {
+    W = window.innerWidth; H = window.innerHeight;
+    svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+    geo.visW = () => W / PX;
+    geo.xH = -0.3 * W / PX;
+    geo.xS = 0.24 * W / PX;
+  }
+  const toPx = p => [W / 2 + p[0] * PX, H * 0.64 - p[1] * PX];
+  const d = pts => 'M' + pts.map(p => { const q = toPx(p); return q[0].toFixed(1) + ' ' + q[1].toFixed(1); }).join('L');
 
   let raf = 0;
   function tick() {
@@ -380,32 +311,81 @@ function startSVG(svg) {
     const s = readScroll();
     svg.style.opacity = String(1 - s.fade);
     if (s.fade >= 1) return;
-    const st = solve(s, 0);
-    back.setAttribute('d', d(st.sbl));
-    back.style.opacity = String(0.3 + 0.55 * st.emph);
-    const sagPts = st.sbl.filter((_, i) => st.dim[i] > 0.12);
-    sag.setAttribute('d', sagPts.length > 1 ? d(sagPts) : 'M0 0');
-    sag.style.opacity = String(st.causeK);
-    ghost.style.opacity = String(0.8 * st.causeK);
-    const wavePts = st.sbl.filter((_, i) => st.wave[i] > 0.25);
-    wave.setAttribute('d', wavePts.length > 1 ? d(wavePts) : 'M0 0');
-    wave.style.opacity = wavePts.length > 1 ? '1' : '0';
-    dot.setAttribute('cx', st.pain[0].toFixed(3));
-    dot.setAttribute('cy', (-st.pain[1]).toFixed(3));
+    const st = solve(s, 0, geo);
+    const F = st.lines[st.lines.length - 1];
+    front.setAttribute('d', d(F.pts));
+    back.setAttribute('d', d(st.lines[3].pts.map(p => [p[0], p[1] * 0.8 + 0.9, 0])));
+    // участок заминки — отдельной дорожкой, которая «подрагивает» CSS-анимацией
+    const hPts = F.pts.filter(p => Math.abs(p[0] - geo.xH) < 1.1);
+    hitch.setAttribute('d', hPts.length > 1 ? d(hPts) : 'M0 0');
+    hitch.style.opacity = String(s.diverge * (1 - smooth(s.realign * 2)));
+    const wPts = F.pts.filter((_, i) => F.tint[i] > 0.3);
+    wave.setAttribute('d', wPts.length > 1 ? d(wPts) : 'M0 0');
+    wave.style.opacity = wPts.length > 1 ? '1' : '0';
+    const sp = toPx(st.signal), bp = toPx(st.bead);
+    dot.setAttribute('cx', sp[0].toFixed(1)); dot.setAttribute('cy', sp[1].toFixed(1));
+    halo.setAttribute('cx', sp[0].toFixed(1)); halo.setAttribute('cy', sp[1].toFixed(1));
     dot.style.opacity = String(st.glow);
-    halo.setAttribute('cx', st.pain[0].toFixed(3));
-    halo.setAttribute('cy', (-st.pain[1]).toFixed(3));
-    halo.style.opacity = String(0.4 * st.glow);
+    halo.style.opacity = String(0.35 * st.glow);
     halo.classList.toggle('is-live', st.glow > 0.05);
-    bead.setAttribute('cx', st.bead[0].toFixed(3));
-    bead.setAttribute('cy', (-st.bead[1]).toFixed(3));
+    bead.setAttribute('cx', bp[0].toFixed(1)); bead.setAttribute('cy', bp[1].toFixed(1));
     bead.style.opacity = String(st.beadOn);
+    // параллакс: задний слой смещается при скролле медленнее переднего
+    backG.style.transform = `translate3d(0, ${(-s.scroll * 0.04).toFixed(1)}px, 0)`;
+    // приглашение — только пока виден hero
+    invite.setAttribute('d', d(st.lines[0].pts.map(p => [p[0], p[1] * 0.6 + 1.6, 0])));
+    inviteG.style.opacity = String(s.hero);
   }
   const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
   window.addEventListener('scroll', wake, { passive: true });
-  window.addEventListener('resize', wake);
+  window.addEventListener('resize', () => { resize(); wake(); });
+  resize();
   wake();
   return { wake, now: tick };
+}
+
+/* ---------------- эхо после «Метода» ----------------
+   Разделители-росчерки между разделами получают второй, тихий слой
+   и сдвигаются при скролле с разной скоростью. Только атрибут transform и только
+   у разделителей в зоне видимости — почти бесплатно для производительности. */
+function startEcho() {
+  const threads = Array.from(document.querySelectorAll('main > section:not(.scene-zone) .thread'));
+  const live = new Set();
+  threads.forEach(svg => {
+    const p = svg.querySelector('path');
+    if (!p) return;
+    const far = p.cloneNode(false);
+    far.setAttribute('class', 'thread__far');
+    far.removeAttribute('style');
+    svg.insertBefore(far, p);
+    svg.classList.add('thread--echo');
+  });
+  let raf = 0;
+  function tick() {
+    raf = 0;
+    const vh = window.innerHeight;
+    live.forEach(svg => {
+      const r = svg.getBoundingClientRect();
+      const k = (r.top + r.height / 2 - vh / 2) / vh;             // −1…1 при прохождении через экран
+      const toUnits = 1200 / Math.max(1, r.width);                // пиксели → единицы viewBox
+      const near = svg.querySelector('path:not(.thread__far)');
+      const far = svg.querySelector('.thread__far');
+      if (near) near.setAttribute('transform', `translate(${(-70 * k * toUnits).toFixed(1)} ${(8 * k).toFixed(1)})`);
+      if (far) far.setAttribute('transform', `translate(${(-24 * k * toUnits).toFixed(1)} ${(14 - 10 * k).toFixed(1)})`);
+    });
+  }
+  const wake = () => { if (!raf) raf = requestAnimationFrame(tick); };
+  if ('IntersectionObserver' in window) {
+    const io = new IntersectionObserver(es => {
+      es.forEach(e => (e.isIntersecting ? live.add(e.target) : live.delete(e.target)));
+      wake();
+    }, { rootMargin: '10% 0px' });
+    threads.forEach(t => io.observe(t));
+  } else {
+    threads.forEach(t => live.add(t));
+  }
+  window.addEventListener('scroll', wake, { passive: true });
+  window.addEventListener('resize', wake);
 }
 
 /* ---------------- выбор рендера ---------------- */
@@ -420,6 +400,7 @@ function webglAvailable() {
   const canvas = document.querySelector('.chain-gl');
   const svg = document.querySelector('.chain-svg');
   if (!canvas || !svg || !secComp || !secMethod || !secProcess) return;
+  startEcho();
 
   const light = window.matchMedia('(max-width: 900px), (hover: none) and (pointer: coarse)').matches;
   let mode = 'svg';

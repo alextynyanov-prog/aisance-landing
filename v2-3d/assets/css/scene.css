@@ -10,25 +10,53 @@
 
 /* секции объясняющей части пропускают сцену; ритм тёмных полос сохранён полупрозрачностью */
 .scene-zone{ background:transparent }
-.scene-zone.sec--alt{ background:color-mix(in srgb, var(--bg-alt) 62%, transparent) }
+.scene-zone.sec--alt{ background:color-mix(in srgb, var(--bg-alt) 30%, transparent) } /* лёгкая подложка: ритм полос остаётся, сцену не гасит */
 
-/* ---------- мобильный SVG-вариант: силуэт и две линии ---------- */
-.chain-svg path{ fill:none; vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round }
-.chain-svg .ch-body{ stroke:var(--text); stroke-opacity:.38; stroke-width:1.2 }
-.chain-svg .ch-arm{ stroke-opacity:.3; stroke-width:1 }
-.chain-svg .ch-front{ stroke:var(--text); stroke-opacity:.2; stroke-width:1 }
-.chain-svg .ch-back{ stroke:var(--text); stroke-width:1.6 }
-.chain-svg .ch-sag{ stroke:var(--bg); stroke-width:2.2; opacity:0 }
-.chain-svg .ch-ghost{ stroke:var(--text); stroke-width:1; stroke-dasharray:2 3; opacity:0 }
-.chain-svg .ch-wave{ stroke:var(--accent); stroke-width:2.2; opacity:0 }
-.chain-svg .ch-dot{ fill:var(--accent); opacity:0 }
-.chain-svg .ch-halo{
+/* внутри зоны сцены линию «играет» сама сцена — статичные разделители там не нужны */
+.scene-zone .thread{ display:none }
+
+/* ---------- эхо после «Метода»: разделитель + тихий второй слой, сдвиг при скролле ---------- */
+.thread--echo .thread__far{
+  fill:none; stroke:currentColor; stroke-width:1; stroke-opacity:.45;
+  vector-effect:non-scaling-stroke; stroke-dasharray:none; stroke-dashoffset:0;
+}
+
+/* ---------- мобильный SVG-вариант: течение в два слоя ---------- */
+.chain-svg path{ fill:none; stroke-linecap:round; stroke-linejoin:round }
+.chain-svg .fl-line--front{ stroke:var(--text); stroke-opacity:.62; stroke-width:1.6 }
+.chain-svg .fl-line--back{ stroke:var(--text); stroke-opacity:.2; stroke-width:1 }
+.chain-svg .fl-wave{ stroke:var(--accent); stroke-width:2.4; opacity:0 }
+.chain-svg .fl-dot{ fill:var(--accent); opacity:0 }
+.chain-svg .fl-halo{
   fill:var(--accent); opacity:0;
   transform-box:fill-box; transform-origin:center;
-  animation:ch-pulse 2.6s ease-in-out infinite; animation-play-state:paused;
+  animation:fl-pulse 2.6s ease-in-out infinite; animation-play-state:paused;
 }
-.chain-svg .ch-halo.is-live{ animation-play-state:running }
-@keyframes ch-pulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.25) } }
+.chain-svg .fl-halo.is-live{ animation-play-state:running }
+/* непрерывное течение — только transform на компоновщике, без JS-цикла */
+.chain-svg .fl-front{ animation:fl-drift 7s ease-in-out infinite alternate }
+.chain-svg .fl-back > path{ animation:fl-drift-back 11s ease-in-out infinite alternate }
+/* заминка «спотыкается»: короткие рывки с неровным ритмом */
+.chain-svg .fl-hitch{ opacity:0; animation:fl-stutter 1.7s steps(1,end) infinite }
+/* приглашение листать: тихая линия утекает вниз за край и появляется снова */
+.chain-svg .fl-invite path{ animation:fl-invite 9s cubic-bezier(.5,0,.8,.6) infinite }
+
+@keyframes fl-pulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.25) } }
+@keyframes fl-drift{ from{ transform:translate3d(-6px,-4px,0) } to{ transform:translate3d(6px,4px,0) } }
+@keyframes fl-drift-back{ from{ transform:translate3d(8px,3px,0) } to{ transform:translate3d(-8px,-3px,0) } }
+@keyframes fl-stutter{
+  0%{ transform:translate(0,0) } 12%{ transform:translate(0,2px) } 18%{ transform:translate(0,-1.5px) }
+  26%{ transform:translate(0,0) } 61%{ transform:translate(0,1.5px) } 66%{ transform:translate(0,0) }
+}
+@keyframes fl-invite{
+  0%{ transform:translate3d(0,0,0); opacity:0 } 12%{ opacity:1 } 85%{ opacity:1 }
+  100%{ transform:translate3d(0,55vh,0); opacity:0 }
+}
+
+@media (prefers-reduced-motion:reduce){
+  .chain-svg .fl-halo, .chain-svg .fl-front, .chain-svg .fl-back > path,
+  .chain-svg .fl-hitch, .chain-svg .fl-invite path{ animation:none }
+}
 
 /* ---------- II. Смещение: плоская схема уступает место сцене,
    подписи «здесь причина / здесь болит» остаются и совпадают с ней по цвету ---------- */
@@ -53,6 +81,3 @@
 .diverge .diverge__mark--cause b{ color:var(--text-2) }
 .diverge .diverge__mark--pain b{ color:var(--accent) }
 
-@media (prefers-reduced-motion:reduce){
-  .chain-svg .ch-halo{ animation:none }
-}
