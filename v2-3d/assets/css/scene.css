@@ -12,15 +12,16 @@
 .scene-zone{ background:transparent }
 .scene-zone.sec--alt{ background:color-mix(in srgb, var(--bg-alt) 62%, transparent) }
 
-/* ---------- мобильный SVG-вариант ---------- */
-.chain-svg .ch-line{
-  fill:none; stroke:var(--text); stroke-opacity:.3; stroke-width:1;
-  vector-effect:non-scaling-stroke; stroke-linecap:round;
-}
-.chain-svg .ch-node{ fill:var(--text); fill-opacity:.75 }
-.chain-svg .ch-ring{
-  fill:none; stroke:var(--text); stroke-width:1; vector-effect:non-scaling-stroke; opacity:0;
-}
+/* ---------- мобильный SVG-вариант: силуэт и две линии ---------- */
+.chain-svg path{ fill:none; vector-effect:non-scaling-stroke; stroke-linecap:round; stroke-linejoin:round }
+.chain-svg .ch-body{ stroke:var(--text); stroke-opacity:.38; stroke-width:1.2 }
+.chain-svg .ch-arm{ stroke-opacity:.3; stroke-width:1 }
+.chain-svg .ch-front{ stroke:var(--text); stroke-opacity:.2; stroke-width:1 }
+.chain-svg .ch-back{ stroke:var(--text); stroke-width:1.6 }
+.chain-svg .ch-sag{ stroke:var(--bg); stroke-width:2.2; opacity:0 }
+.chain-svg .ch-ghost{ stroke:var(--text); stroke-width:1; stroke-dasharray:2 3; opacity:0 }
+.chain-svg .ch-wave{ stroke:var(--accent); stroke-width:2.2; opacity:0 }
+.chain-svg .ch-dot{ fill:var(--accent); opacity:0 }
 .chain-svg .ch-halo{
   fill:var(--accent); opacity:0;
   transform-box:fill-box; transform-origin:center;
