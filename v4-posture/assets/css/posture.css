@@ -1,0 +1,93 @@
+/* AISANCE · вариант 4 — «Осанка». Подключается поверх style.css варианта 1. */
+
+/* ---------- схема: отвес, точки отсчёта, линия осанки ---------- */
+.posture{ position:relative }
+.posture svg{ position:absolute; inset:0; width:100%; height:100%; overflow:visible }
+.pz-plumb{ stroke:var(--text-3); stroke-width:1; stroke-dasharray:2 5; vector-effect:non-scaling-stroke }
+.pz-floor{ stroke:var(--rule); stroke-width:1; vector-effect:non-scaling-stroke }
+.pz-body{ fill:none; stroke:var(--text); stroke-width:1.6; stroke-linecap:round; vector-effect:non-scaling-stroke }
+.pz-tick{ stroke:var(--accent-mut); stroke-width:1; vector-effect:non-scaling-stroke }
+.pz-dot{ fill:var(--bg); stroke:var(--text); stroke-width:1.3; vector-effect:non-scaling-stroke }
+.pz-cause{ fill:none; stroke:var(--text-2); stroke-width:1; stroke-dasharray:2 2; vector-effect:non-scaling-stroke; opacity:0 }
+.pz-pain{ fill:var(--accent); opacity:0 }
+.pz-halo{
+  fill:var(--accent); opacity:0;
+  transform-box:fill-box; transform-origin:center;
+  animation:pz-pulse 2.4s ease-in-out infinite; animation-play-state:paused;
+}
+.pz-halo.is-live{ animation-play-state:running }
+@keyframes pz-pulse{ 0%,100%{ transform:scale(1) } 50%{ transform:scale(1.35) } }
+
+.pz-label{
+  position:absolute; left:0; transform:translateY(-50%);
+  font-family:var(--f-display); font-size:.6rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--text-3); pointer-events:none;
+}
+
+/* ---------- hero: схема справа от заголовка ---------- */
+.posture--hero{ width:min(240px, 62vw); height:320px; margin:clamp(28px,5vh,48px) 0 0 auto }
+@media (min-width:1100px){
+  .hero .wrap{ position:relative }
+  .posture--hero{
+    position:absolute; right:var(--gut); top:clamp(40px,8vh,90px);
+    width:clamp(200px,16vw,240px); height:min(50vh,430px); margin:0;
+  }
+}
+
+/* ---------- II. Смещение: виджет вместо плоской схемы ---------- */
+.diverge--posture{
+  display:grid; gap:clamp(28px,5vw,80px); align-items:center;
+  margin:clamp(36px,7vh,80px) 0 clamp(34px,6vh,64px);
+}
+@media (min-width:761px){ .diverge--posture{ grid-template-columns:clamp(200px,22vw,280px) minmax(0,1fr) } }
+.posture--diverge{ height:clamp(340px,52vh,480px) }
+@media (max-width:760px){ .posture--diverge{ width:min(260px,70vw); margin:0 auto } }
+.diverge--posture::before{ content:none }
+
+.diverge__side{ display:grid; gap:clamp(24px,4vh,40px); max-width:44ch }
+.diverge--posture .diverge__mark,
+.diverge--posture .diverge__mark--cause,
+.diverge--posture .diverge__mark--pain{
+  position:relative; inset:auto; max-width:none; margin:0; padding-left:26px; text-align:left;
+}
+.diverge--posture .diverge__mark::before{
+  content:''; position:absolute; left:0; top:.42em; width:9px; height:9px; border-radius:50%;
+}
+.diverge--posture .diverge__mark--cause::before{ border:1px dashed var(--text-2); background:transparent }
+.diverge--posture .diverge__mark--pain::before{ background:var(--accent); box-shadow:0 0 0 4px color-mix(in srgb, var(--accent) 22%, transparent) }
+.diverge--posture .diverge__mark--cause b{ color:var(--text-2) }
+.diverge--posture .diverge__mark--pain b{ color:var(--accent) }
+
+/* ползунок */
+.posture-ctrl{ display:grid; gap:12px; padding-top:clamp(20px,3vh,28px); border-top:1px solid var(--rule) }
+.posture-ctrl__label{
+  font-family:var(--f-display); font-size:.68rem; letter-spacing:.24em;
+  text-transform:uppercase; color:var(--text-3);
+}
+.posture-ctrl__scale{ display:flex; justify-content:space-between; font-size:.78em; color:var(--text-3) }
+.posture-ctrl input[type=range]{
+  -webkit-appearance:none; appearance:none; width:100%; height:28px; margin:0;
+  background:transparent; cursor:pointer;
+}
+.posture-ctrl input[type=range]::-webkit-slider-runnable-track{ height:1px; background:var(--rule) }
+.posture-ctrl input[type=range]::-moz-range-track{ height:1px; background:var(--rule) }
+.posture-ctrl input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none; width:18px; height:18px; margin-top:-8.5px; border-radius:50%;
+  background:var(--bg); border:1px solid var(--accent); transition:transform .2s var(--ease);
+}
+.posture-ctrl input[type=range]::-moz-range-thumb{
+  width:18px; height:18px; border-radius:50%; background:var(--bg); border:1px solid var(--accent);
+}
+.posture-ctrl input[type=range]:hover::-webkit-slider-thumb{ transform:scale(1.15) }
+.posture-ctrl input[type=range]:focus-visible{ outline:1px solid var(--accent); outline-offset:6px }
+
+/* ---------- IV. Метод: схема рядом с заголовком ---------- */
+.method-head{ display:grid; gap:clamp(28px,4vw,72px); align-items:center; margin-bottom:clamp(40px,7vh,84px) }
+.method-head .pull{ margin-bottom:0 }
+.posture--method{ width:min(220px,60vw); height:340px; margin:0 auto }
+@media (min-width:900px){
+  .method-head{ grid-template-columns:minmax(0,1fr) clamp(190px,18vw,240px) }
+  .posture--method{ width:100%; height:clamp(340px,50vh,440px) }
+}
+
+@media (prefers-reduced-motion:reduce){ .pz-halo{ animation:none } }
