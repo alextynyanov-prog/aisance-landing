@@ -15,6 +15,7 @@
   var SKIP = '.sec__num, .foot__phrase, .posture, label';          // служебное и утверждённая фраза — не правим
   var ALLOWED = { B: 1, STRONG: 1, I: 1, EM: 1, SPAN: 1, BR: 1 };
   var CHIPS = ['Короче', 'Проще', 'Конкретнее', 'Добавить пример', 'Мягче по тону', 'Убрать блок'];
+  var MIC = '<svg class="ed-mic__ico" viewBox="0 0 16 16" width="12" height="12" fill="none" stroke="currentColor" stroke-width="1.2" aria-hidden="true"><rect x="5.5" y="1.5" width="5" height="8" rx="2.5"/><path d="M3 7.5a5 5 0 0 0 10 0M8 12.5V15"/></svg>';
 
   var S = { edits: {}, notes: {}, sec: {} };
   try { var saved = JSON.parse(localStorage.getItem(KEY)); if (saved) S = { edits: saved.edits || {}, notes: saved.notes || {}, sec: saved.sec || {} }; } catch (e) {}
@@ -50,7 +51,7 @@
   function plain(html) {
     var d = document.createElement('div');
     d.innerHTML = html.replace(/<br\s*\/?>/gi, '\n').replace(/><(?!\/)/g, '> <');   // соседние блоки не склеиваем
-    return d.textContent.replace(/[ \t]+/g, ' ').replace(/\n\s+/g, '\n').trim();
+    return d.textContent.replace(/\u00a0/g, ' ').replace(/[ \t]+/g, ' ').replace(/\n\s+/g, '\n').trim();
   }
 
   /* ---------- блоки и разделы ---------- */
@@ -103,7 +104,8 @@
   tb.id = 'ed-tb'; tb.hidden = true; tb.setAttribute('role', 'toolbar'); tb.setAttribute('aria-label', 'Режим правок');
   tb.innerHTML =
     '<div class="ed-tb__row"><span class="ed-tb__title"><i></i>Режим правок</span><span class="ed-tb__cnt" id="ed-cnt"></span></div>' +
-    '<p class="ed-tb__hint">Кликните в текст — правьте. Наведите на блок — появится «Команда». Enter абзац не создаёт: для этого оставьте блоку команду.</p>' +
+    '<div class="ed-tb__live" hidden><i></i><span>Слушаю</span><b></b><button type="button" data-act="stop">Стоп</button></div>' +
+    '<p class="ed-tb__hint">Кликните в текст — правьте или наговорите (кнопка «Голос»). Наведите на блок — появится «Команда». Enter абзац не создаёт: для этого оставьте блоку команду.</p>' +
     '<div class="ed-tb__row ed-tb__btns">' +
     '<button type="button" data-act="list">Список правок</button>' +
     '<button type="button" data-act="copy" class="is-main">Скопировать для Claude</button>' +
@@ -112,7 +114,9 @@
 
   var bar = mk('div', 'ed-bar');
   bar.id = 'ed-bar'; bar.hidden = true;
-  bar.innerHTML = '<button type="button" data-act="note">Команда</button><button type="button" data-act="undo" hidden>Сбросить блок</button>';
+  bar.innerHTML = '<button type="button" data-act="mic" class="ed-mic" aria-label="Наговорить правку в этот блок">' + MIC + '<span>Голос</span></button>' +
+    '<button type="button" data-act="note">Команда</button><button type="button" data-act="undo" hidden>Сбросить блок</button>';
+  bar.addEventListener('mousedown', function (e) { e.preventDefault(); });   // курсор в тексте не теряется
 
   var pop = mk('div', 'ed-pop');
   pop.id = 'ed-pop'; pop.hidden = true; pop.setAttribute('role', 'dialog');
@@ -162,9 +166,139 @@
     clearTimeout(say.t); say.t = setTimeout(function () { toast.hidden = true; }, 2800);
   }
 
+  /* ---------- голосовой ввод ----------
+     Распознавание речи — встроенное в браузер (Chrome, Edge, Safari), русский язык.
+     Работает по нажатию; в Chrome звук обрабатывает сервис браузера. */
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  var voice = { rec: null, active: false, blockEid: null, popup: false, fatal: false, idle: 0 };
+  var tbLive = tb.querySelector('.ed-tb__live');
+  var lastSel = null;                                            // где стоял курсор в блоке
+
+  document.addEventListener('selectionchange', function () {
+    var sel = window.getSelection();
+    if (!sel.rangeCount) return;
+    var n = sel.anchorNode, el = n && (n.nodeType === 1 ? n : n.parentElement);
+    el = el && el.closest && el.closest('.ed-block');
+    if (!el) return;
+    lastSel = { el: el, range: sel.getRangeAt(0).cloneRange() };
+    var b = voice.active && voice.blockEid && byEl.get(el);
+    if (b && b.eid !== voice.blockEid) stopVoice();             // курсор ушёл в другой блок — диктовка заканчивается
+  });
+
+  // Голосовая пунктуация: «запятая», «вопросительный знак», «двоеточие», «тире»; «точка» — только в конце фразы
+  function voiceFix(text) {
+    var t = (' ' + text.trim() + ' ')
+      .replace(/\s+вопросительный знак(?=\s)/gi, '?').replace(/\s+восклицательный знак(?=\s)/gi, '!')
+      .replace(/\s+запятая(?=\s)/gi, ',').replace(/\s+двоеточие(?=\s)/gi, ':').replace(/\s+тире(?=\s)/gi, ' —')
+      .trim();
+    return t.replace(/\s+точка$/i, '.').replace(/\s+([,.:;!?])/g, '$1');
+  }
+  // Пробел и заглавная буква по месту вставки
+  function shape(t, before) {
+    var prev = before.replace(/\u00a0/g, ' '), lead = '';
+    if (prev && !/[\s«(]$/.test(prev) && !/^[,.:;!?]/.test(t)) lead = ' ';
+    if (!prev || /[.!?]\s*$/.test(prev)) t = t.charAt(0).toUpperCase() + t.slice(1);
+    return lead + t;
+  }
+
+  var MESSAGES = {
+    'not-allowed': 'Нет доступа к микрофону. Разрешите его для этого сайта (значок слева в адресной строке) и нажмите снова',
+    'service-not-allowed': 'Нет доступа к распознаванию речи. Проверьте разрешение микрофона для сайта',
+    'audio-capture': 'Микрофон не найден — подключите его и нажмите снова',
+    'network': 'Нет связи с сервисом распознавания речи'
+  };
+
+  function startVoice(sink) {
+    if (!SR) { say('Голосовой ввод есть в Chrome, Edge и Safari. Откройте страницу там — или включите диктовку системы (Mac: дважды Fn)'); return false; }
+    stopVoice();
+    var rec = new SR();
+    rec.lang = 'ru-RU'; rec.continuous = true; rec.interimResults = true; rec.maxAlternatives = 1;
+    voice.rec = rec; voice.active = true; voice.fatal = false; voice.idle = 0;
+    rec.onresult = function (e) {
+      voice.idle = 0;
+      var fin = '', interim = '';
+      for (var i = e.resultIndex; i < e.results.length; i++) {
+        var r = e.results[i];
+        if (r.isFinal) fin += r[0].transcript; else interim += r[0].transcript;
+      }
+      if (fin.trim()) sink.final(voiceFix(fin));
+      sink.interim(interim.trim());
+    };
+    rec.onerror = function (e) {
+      if (e.error === 'no-speech' || e.error === 'aborted') return;
+      voice.fatal = true;
+      say(MESSAGES[e.error] || 'Голосовой ввод не сработал (' + e.error + ')');
+      stopVoice();
+    };
+    rec.onend = function () {
+      if (voice.rec !== rec) return;
+      if (voice.active && !voice.fatal && voice.idle < 6) {      // браузер сам обрывает сессию после паузы — продолжаем
+        voice.idle++;
+        setTimeout(function () { try { if (voice.rec === rec && voice.active) rec.start(); } catch (err) {} }, 250);
+      } else { finishVoice(sink); }
+    };
+    sink.state(true);
+    try { rec.start(); } catch (err) { voice.fatal = true; stopVoice(); say('Не удалось включить микрофон'); return false; }
+    voice.sink = sink;
+    return true;
+  }
+  function stopVoice() {
+    var rec = voice.rec;
+    voice.active = false;
+    if (voice.sink) { voice.sink.state(false); voice.sink.interim(''); }
+    if (rec) { try { rec.stop(); } catch (e) {} }                // последний кусок речи ещё может прийти после stop
+    setTimeout(function () { if (voice.rec === rec && !voice.active) { voice.rec = null; voice.sink = null; } }, 1500);
+    voice.blockEid = null; voice.popup = false;
+    if (typeof syncBar === 'function') syncBar();
+  }
+  function finishVoice(sink) {
+    voice.active = false; sink.state(false); sink.interim('');
+    voice.rec = null; voice.sink = null; voice.blockEid = null; voice.popup = false;
+    syncBar();
+  }
+
+  // Куда пишем: текст блока (по месту курсора)…
+  function blockSink(b) {
+    var el = b.el, range;
+    if (lastSel && lastSel.el === el) range = lastSel.range.cloneRange();
+    else { range = document.createRange(); range.selectNodeContents(el); range.collapse(false); }
+    var label = tbLive.querySelector('b');
+    return {
+      final: function (t) {
+        el.focus({ preventScroll: true });
+        var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(range);
+        var pre = document.createRange(); pre.selectNodeContents(el); pre.setEnd(range.startContainer, range.startOffset);
+        document.execCommand('insertText', false, shape(t, pre.toString()));
+        if (sel.rangeCount) range = sel.getRangeAt(0).cloneRange();
+      },
+      interim: function (t) { label.textContent = t; },
+      state: function (on) { tbLive.hidden = !on; if (!on) label.textContent = ''; }
+    };
+  }
+  // …или текст команды в окне
+  function taSink(ta) {
+    var base = ta.value, done = '';
+    var btn = pop.querySelector('.ed-mic'), status = pop.querySelector('.ed-pop__live');
+    function render(interim) {
+      var add = (done + (interim ? (done ? ' ' : '') + interim : '')).replace(/\s+([,.:;!?])/g, '$1').trim();
+      ta.value = base + (add ? (base && !/\s$/.test(base) ? ' ' : '') + add : '');
+    }
+    return {
+      final: function (t) { done += (done ? ' ' : '') + t; render(''); },
+      interim: render,
+      state: function (on) {
+        btn.classList.toggle('is-live', on);
+        btn.querySelector('span').textContent = on ? 'Стоп' : 'Наговорить';
+        status.textContent = on ? 'Слушаю… говорите' : '';
+      }
+    };
+  }
+  window.addEventListener('visibilitychange', function () { if (document.hidden) stopVoice(); });
+
   /* ---------- режим правок ---------- */
   function setEditing(on) {
     editing = on;
+    if (!on) stopVoice();
     document.body.classList.toggle('is-editing', on);
     blocks.forEach(function (b) {
       if (on) { b.el.setAttribute('contenteditable', 'true'); b.el.setAttribute('spellcheck', 'true'); b.el.classList.add('ed-block'); }
@@ -191,7 +325,7 @@
     var el = e.target.closest && e.target.closest('.ed-block');
     if (!el) return;
     if (e.key === 'Enter' && !e.shiftKey) e.preventDefault();
-    if (e.key === 'Escape') el.blur();
+    if (e.key === 'Escape') { if (voice.active) stopVoice(); el.blur(); }
   });
   document.addEventListener('paste', function (e) {                // вставляем только текст, без чужого оформления
     var el = e.target.closest && e.target.closest('.ed-block');
@@ -214,6 +348,9 @@
     var m = S.notes[b.eid];
     bar.querySelector('[data-act=note]').textContent = m && m.o === b.orig ? 'Команда ●' : 'Команда';
     bar.querySelector('[data-act=undo]').hidden = !(S.edits[b.eid] && S.edits[b.eid].o === b.orig);
+    var live = voice.active && voice.blockEid === b.eid, mic = bar.querySelector('[data-act=mic]');
+    mic.classList.toggle('is-live', live);
+    mic.querySelector('span').textContent = live ? 'Стоп' : 'Голос';
   }
   function placeBar() {
     var b = barTarget;
@@ -256,6 +393,11 @@
     var act = e.target.getAttribute && e.target.getAttribute('data-act');
     var b = barTarget;
     if (!act || !b) return;
+    if (act === 'mic') {
+      if (voice.active && voice.blockEid === b.eid) { stopVoice(); return; }
+      if (startVoice(blockSink(b))) { voice.blockEid = b.eid; syncBar(); }
+      return;
+    }
     if (act === 'note') openPop('block', b.eid, plain(b.orig).slice(0, 70), bar.getBoundingClientRect(), b);
     if (act === 'undo') {
       b.el.innerHTML = b.raw; b.el.classList.remove('ed-changed');
@@ -272,12 +414,15 @@
       '<p class="ed-pop__title">' + (kind === 'sec' ? 'Команда к разделу' : 'Команда к блоку') + '</p>' +
       '<p class="ed-pop__sub"></p>' +
       '<textarea rows="3" placeholder="Что сделать: сократить, переписать мягче, добавить пример…"></textarea>' +
+      '<div class="ed-pop__voice"><button type="button" data-act="mic" class="ed-mic" aria-label="Наговорить команду">' + MIC + '<span>Наговорить</span></button>' +
+      '<span class="ed-pop__live" aria-live="polite"></span></div>' +
       '<div class="ed-pop__chips"></div>' +
       '<div class="ed-pop__btns"><button type="button" data-act="save" class="is-main">Сохранить</button>' +
       '<button type="button" data-act="drop">Удалить</button><button type="button" data-act="close">Закрыть</button></div>';
     pop.querySelector('.ed-pop__sub').textContent = '«' + label + (label.length >= 70 ? '…' : '') + '»';
     var ta = pop.querySelector('textarea');
     ta.value = cur ? cur.t : '';
+    ta.addEventListener('input', function () { if (voice.popup) stopVoice(); });   // начали печатать — диктовка заканчивается
     var chips = pop.querySelector('.ed-pop__chips');
     CHIPS.forEach(function (c) {
       var x = mk('button', '', c); x.type = 'button';
@@ -296,10 +441,15 @@
     } else { pop.style.left = pop.style.top = ''; }
     ta.focus();
   }
-  function closePop() { pop.hidden = true; popCtx = null; }
+  function closePop() { if (voice.popup) stopVoice(); pop.hidden = true; popCtx = null; }
   pop.addEventListener('click', function (e) {
     var act = e.target.getAttribute && e.target.getAttribute('data-act');
     if (!act || !popCtx) return;
+    if (act === 'mic') {
+      if (voice.active && voice.popup) { stopVoice(); return; }
+      if (startVoice(taSink(pop.querySelector('textarea')))) voice.popup = true;
+      return;
+    }
     var c = popCtx, val = pop.querySelector('textarea').value.trim();
     if (act === 'save') {
       if (c.kind === 'sec') { if (val) S.sec[c.key] = { t: val }; else delete S.sec[c.key]; }
@@ -389,6 +539,7 @@
     var act = e.target.getAttribute && e.target.getAttribute('data-act');
     if (act === 'list') openModal();
     if (act === 'copy') copyOut();
+    if (act === 'stop') stopVoice();
     if (act === 'off') setEditing(false);
     if (act === 'reset') {
       if (!window.confirm('Сбросить все правки и команды? Текст вернётся к версии из кода.')) return;

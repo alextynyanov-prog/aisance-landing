@@ -42,7 +42,7 @@
 /* нижняя панель */
 .ed-tb{
   position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:76;
-  width:min(760px, calc(100vw - 24px)); padding:14px 16px; display:grid; gap:10px;
+  width:min(760px, calc(100vw - 24px)); padding:14px 16px; display:grid; grid-template-columns:minmax(0,1fr); gap:10px; box-sizing:border-box;
   background:var(--panel); border:1px solid var(--rule);
 }
 .ed-tb[hidden], .ed-bar[hidden], .ed-pop[hidden], .ed-toast[hidden], .ed-pill[hidden], .ed-sec-btn[hidden]{ display:none }
@@ -107,5 +107,30 @@
   padding:10px 16px; font-size:.64rem; letter-spacing:.18em; text-transform:uppercase;
   background:var(--panel); border:1px solid var(--accent-mut); color:var(--text);
 }
+
+/* ---------- голосовой ввод ---------- */
+.ed-mic{ display:inline-flex; align-items:center; gap:8px }
+.ed-mic__ico{ flex:none }
+.ed-mic.is-live{ color:var(--accent); border-color:var(--accent) }
+.ed-bar .ed-mic.is-live{ background:color-mix(in srgb, var(--accent-mut) 28%, transparent) }
+.ed-mic.is-live .ed-mic__ico{ animation:ed-rec 1.3s ease-in-out infinite }
+.ed-pop__voice{ display:flex; align-items:center; gap:12px; flex-wrap:wrap }
+.ed-pop__live{ font-family:var(--f-text); font-weight:300; letter-spacing:0; font-size:.8rem; color:var(--accent) }
+
+/* строка «слушаю» в нижней панели */
+.ed-tb__live{
+  display:flex; align-items:center; gap:12px; padding:9px 12px;
+  background:color-mix(in srgb, var(--accent-mut) 24%, transparent); border:1px solid var(--accent-mut);
+}
+.ed-tb__live[hidden]{ display:none }
+.ed-tb__live{ min-width:0; box-sizing:border-box }
+.ed-tb__live i{ flex:none; width:8px; height:8px; border-radius:50%; background:var(--accent); animation:ed-rec 1.3s ease-in-out infinite }
+.ed-tb__live span{ flex:none; font-size:.64rem; letter-spacing:.24em; text-transform:uppercase; color:var(--accent) }
+.ed-tb__live b{
+  flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  font-family:var(--f-text); font-weight:300; font-size:.86rem; letter-spacing:0; text-transform:none; color:var(--text-2);
+}
+@keyframes ed-rec{ 0%,100%{ opacity:1 } 50%{ opacity:.35 } }
+@media (prefers-reduced-motion:reduce){ .ed-mic.is-live .ed-mic__ico, .ed-tb__live i{ animation:none } }
 
 @media print{ .ed-pill, .ed-tb, .ed-bar, .ed-pop, .ed-toast, .ed-modal, .ed-sec-btn{ display:none !important } }
