@@ -1,0 +1,111 @@
+/* AISANCE · редактор правок (черновой этап). Подключается поверх style.css.
+   Перед боевым запуском вместе с editor.js убирается из index.html. */
+
+/* в режиме правок читается всё сразу: анимации появления не прячут блоки */
+.is-editing [data-anim],
+.is-editing .seq__list li,
+.is-editing .diverge__mark{ opacity:1 !important; transform:none !important }
+.is-editing main > section > .wrap,
+.is-editing .foot > .wrap{ position:relative }
+
+/* ---------- редактируемые блоки ---------- */
+.ed-block{ cursor:text; outline:1px dashed transparent; outline-offset:5px; transition:outline-color .25s var(--ease) }
+.ed-block:hover{ outline-color:var(--accent-mut) }
+.ed-block:focus{ outline:1px solid var(--accent); outline-offset:5px }
+.ed-block.ed-noted{ outline:1px dotted var(--text-3) }
+.ed-block.ed-changed{ outline:1px solid color-mix(in srgb, var(--accent) 55%, transparent) }
+.ed-block.ed-changed:focus{ outline-color:var(--accent) }
+.ed-block::selection{ background:var(--accent-mut); color:var(--text) }
+
+/* ---------- общие элементы интерфейса ---------- */
+.ed-pill, .ed-tb, .ed-bar, .ed-pop, .ed-toast, .ed-modal__box, .ed-sec-btn{
+  font-family:var(--f-display); font-weight:400; color:var(--text); letter-spacing:.14em;
+}
+.ed-tb button, .ed-bar button, .ed-pop button, .ed-modal button, .ed-sec-btn, .ed-pill{
+  font:inherit; font-size:.64rem; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--text-2); background:transparent; border:1px solid var(--rule);
+  padding:9px 14px; cursor:pointer; transition:border-color .25s var(--ease), color .25s var(--ease), background .25s var(--ease);
+}
+.ed-tb button:hover, .ed-bar button:hover, .ed-pop button:hover, .ed-modal button:hover, .ed-sec-btn:hover, .ed-pill:hover{ border-color:var(--accent-mut); color:var(--text) }
+.ed-tb button.is-main, .ed-pop button.is-main, .ed-modal button.is-main{ border-color:var(--accent-mut); color:var(--text); background:color-mix(in srgb, var(--accent-mut) 28%, transparent) }
+.ed-tb button.is-main:hover, .ed-pop button.is-main:hover, .ed-modal button.is-main:hover{ border-color:var(--accent) }
+.ed-tb button:focus-visible, .ed-bar button:focus-visible, .ed-pop button:focus-visible, .ed-modal button:focus-visible, .ed-pill:focus-visible, .ed-sec-btn:focus-visible{ outline:1px solid var(--accent); outline-offset:3px }
+
+/* вход в режим */
+.ed-pill{
+  position:fixed; right:16px; bottom:16px; z-index:75;
+  background:color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter:blur(8px); -webkit-backdrop-filter:blur(8px);
+  opacity:.6;
+}
+.ed-pill:hover, .ed-pill:focus-visible{ opacity:1 }
+
+/* нижняя панель */
+.ed-tb{
+  position:fixed; left:50%; bottom:14px; transform:translateX(-50%); z-index:76;
+  width:min(760px, calc(100vw - 24px)); padding:14px 16px; display:grid; gap:10px;
+  background:var(--panel); border:1px solid var(--rule);
+}
+.ed-tb[hidden], .ed-bar[hidden], .ed-pop[hidden], .ed-toast[hidden], .ed-pill[hidden], .ed-sec-btn[hidden]{ display:none }
+.ed-tb__row{ display:flex; flex-wrap:wrap; align-items:center; gap:8px 16px }
+.ed-tb__title{ font-size:.66rem; letter-spacing:.26em; text-transform:uppercase; display:inline-flex; align-items:center; gap:10px }
+.ed-tb__title i{ width:7px; height:7px; border-radius:50%; background:var(--accent); box-shadow:0 0 0 3px color-mix(in srgb, var(--accent) 24%, transparent) }
+.ed-tb__cnt{ font-size:.64rem; letter-spacing:.14em; color:var(--text-3); margin-left:auto }
+.ed-tb__hint{ margin:0; font-family:var(--f-text); font-weight:300; letter-spacing:0; font-size:.8rem; line-height:1.5; color:var(--text-3) }
+.ed-tb__btns{ gap:8px }
+.ed-tb__btns button:last-child{ margin-left:auto }
+@media (max-width:560px){
+  .ed-tb__hint{ display:none }
+  .ed-tb__cnt{ margin-left:0; width:100% }
+  .ed-tb__btns button{ flex:1 1 auto; padding:10px 8px }
+  .ed-tb__btns button:last-child{ margin-left:0 }
+}
+
+/* мини-панель блока */
+.ed-bar{
+  position:fixed; z-index:74; display:flex; gap:0;
+  background:var(--panel); border:1px solid var(--rule);
+}
+.ed-bar button{ border:0; border-right:1px solid var(--rule); padding:7px 11px }
+.ed-bar button:last-child{ border-right:0 }
+
+/* кнопка раздела */
+.ed-sec-btn{
+  position:absolute; top:clamp(14px,2.4vh,26px); right:var(--gut); z-index:5;
+  background:color-mix(in srgb, var(--bg) 80%, transparent);
+}
+.ed-sec-btn.has{ border-color:var(--accent-mut); color:var(--accent) }
+.hero .ed-sec-btn{ top:84px }
+
+/* окно команды */
+.ed-pop{
+  position:fixed; z-index:78; width:min(340px, calc(100vw - 16px)); padding:16px;
+  background:var(--panel); border:1px solid var(--accent-mut); display:grid; gap:12px;
+}
+.ed-pop--sheet{ left:8px; right:8px; bottom:8px; top:auto; width:auto }
+.ed-pop__title{ margin:0; font-size:.66rem; letter-spacing:.26em; text-transform:uppercase; color:var(--accent) }
+.ed-pop__sub{ margin:0; font-family:var(--f-text); font-weight:300; letter-spacing:0; font-size:.82rem; line-height:1.5; color:var(--text-3) }
+.ed-pop textarea, .ed-modal textarea{
+  width:100%; box-sizing:border-box; resize:vertical; padding:10px 12px;
+  font:300 .9rem/1.55 var(--f-text); letter-spacing:0; color:var(--text);
+  background:var(--bg); border:1px solid var(--rule);
+}
+.ed-pop textarea:focus, .ed-modal textarea:focus{ outline:1px solid var(--accent); outline-offset:0 }
+.ed-pop__chips, .ed-pop__btns{ display:flex; flex-wrap:wrap; gap:6px }
+.ed-modal .ed-pop__btns{ gap:8px }
+.ed-pop__chips button{ padding:6px 10px; font-size:.58rem; letter-spacing:.14em }
+
+/* список правок */
+.ed-modal{
+  position:fixed; inset:0; z-index:90; display:grid; place-items:center; padding:16px;
+  background:color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter:blur(6px); -webkit-backdrop-filter:blur(6px);
+}
+.ed-modal__box{ width:min(720px, 100%); max-height:calc(100vh - 32px); display:grid; gap:12px; padding:20px; background:var(--panel); border:1px solid var(--rule) }
+.ed-modal textarea{ min-height:min(46vh,380px) }
+
+.ed-toast{
+  position:fixed; left:50%; bottom:calc(14px + 120px); transform:translateX(-50%); z-index:95;
+  padding:10px 16px; font-size:.64rem; letter-spacing:.18em; text-transform:uppercase;
+  background:var(--panel); border:1px solid var(--accent-mut); color:var(--text);
+}
+
+@media print{ .ed-pill, .ed-tb, .ed-bar, .ed-pop, .ed-toast, .ed-modal, .ed-sec-btn{ display:none !important } }
