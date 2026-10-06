@@ -6,7 +6,7 @@
 <!-- ВРЕМЕННО: снять перед публичным запуском на aisance.space (вместе с robots.txt) -->
 <meta name="robots" content="noindex, nofollow">
 <title>AISANCE — функциональная диагностика движения, работа один на один</title>
-<meta name="description" content="Индивидуальная практика функциональной диагностики движения. Причину находим тестом, а не догадкой, и закрепляем результат через движение. Диагностика 60 минут, блок из 10 встреч. Москва, Большой Тишинский, 10с1.">
+<meta name="description" content="Индивидуальная практика функциональной диагностики движения. Причину находим тестом, а не догадкой, и закрепляем результат через движение. Диагностика 90 минут, блок из 10 встреч. Москва, Большой Тишинский, 10с1.">
 <link rel="canonical" href="https://aisance.space/">
 <meta name="theme-color" content="#161E19">
 
@@ -36,6 +36,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@1,300;1,400&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&family=Inter:wght@300;400;500&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="assets/css/style.css">
 <link rel="stylesheet" href="assets/css/posture.css">
+<link rel="stylesheet" href="assets/css/blocks.css">
 <link rel="stylesheet" href="assets/css/editor.css">
 <noscript><style>[data-anim]{opacity:1!important;transform:none!important}.swash path,.thread path,.dv-base{stroke-dashoffset:0!important}.dv-link,.dv-dot,.diverge__mark,.seq__list li{opacity:1!important;transform:none!important}.seq__line{transform:none!important}.topbar__logo img{opacity:1!important;transform:none!important}</style></noscript>
 </head>
@@ -94,13 +95,13 @@
     </h1>
 
     <div class="posture posture--hero" data-mode="hero" role="img"
-         aria-label="Схема осанки в профиль: отвес и точки отсчёта — ухо, плечо, таз, колено, стопа. Компенсация снимается от стопы вверх."></div>
+         aria-label="Схема осанки в профиль: отвес и точки отсчёта — ухо, плечо, таз, колено, стопа. Компенсация снимается, начиная с причины: то снизу, то сверху."></div>
 
     <div class="hero__foot">
       <p class="hero__lede">Индивидуальная практика функциональной диагностики движения.<br>
-        Работа один на один. Москва, Большой Тишинский, 10с1.</p>
+        Работа один на один. Москва, центр.</p>
       <dl class="hero__facts">
-        <div><dt>Вход</dt><dd>Диагностика, 60 минут</dd></div>
+        <div><dt>Вход</dt><dd>Диагностика, 90 минут</dd></div>
         <div><dt>Работа</dt><dd>Блок из 10 встреч, ~1,5 месяца</dd></div>
         <div><dt>Основание</dt><dd>Тест, а не догадка</dd></div>
       </dl>
@@ -119,9 +120,27 @@
       <h2 class="h-display">Тело уже нашло обходной путь</h2>
       <div class="col-text">
         <p class="lead">Оно приспособилось к нарушению, о котором вы не знаете, — и повторяет это приспособление каждым движением, весь день, годами.</p>
-        <p>Заметно не само приспособление, а его счёт. Напряжение, которое возвращается через несколько дней. Боль без понятного момента, когда она началась. Энергия, которой к вечеру уже нет, — потому что часть её постоянно уходит фоном на то, чтобы обходить проблему.</p>
-        <p>Массаж, разминание, обезболивание снимают сигнал. Схема движения, которая этот сигнал производит, остаётся нетронутой — поэтому облегчение и не держится. Иногда человек усугубляет ситуацию сам: крутит, тянет и разминает именно тот участок, который и так перегружен.</p>
       </div>
+    </div>
+
+    <div class="packs">
+      <article class="pack" data-anim>
+        <p class="pack__label">Что вы замечаете</p>
+        <p class="pack__lead">Заметно не само приспособление, а его счёт:</p>
+        <ul class="pack__list">
+          <li>напряжение, которое возвращается через несколько дней;</li>
+          <li>боль без понятного момента, когда она началась;</li>
+          <li>энергия, которой к вечеру уже нет, — часть её постоянно уходит фоном на то, чтобы обходить проблему.</li>
+        </ul>
+      </article>
+      <article class="pack" data-anim>
+        <p class="pack__label">Почему облегчение не держится</p>
+        <p>Массаж, разминание, обезболивание снимают сигнал. Схема движения, которая этот сигнал производит, остаётся нетронутой.</p>
+      </article>
+      <article class="pack pack--warn" data-anim>
+        <p class="pack__label">Что делает хуже</p>
+        <p>Иногда человек усугубляет ситуацию сам: крутит, тянет и разминает именно тот участок, который и так перегружен.</p>
+      </article>
     </div>
 
     <ul class="ticker">
@@ -148,22 +167,26 @@
 
     <div class="diverge diverge--posture" data-anim>
       <div class="posture posture--diverge" data-mode="diverge" role="img"
-           aria-label="Схема осанки: ограничение у стопы, сигнал — в пояснице"></div>
+           aria-label="Схема осанки: где болит и где на самом деле причина. Причину можно переключить — снизу или сверху."></div>
       <div class="diverge__side">
         <p class="diverge__mark diverge__mark--cause"><b>Здесь причина</b><span>мышца, фасция, сустав, ткань — определяется тестом</span></p>
         <p class="diverge__mark diverge__mark--pain"><b>Здесь болит</b><span>сюда обычно и направляют всё лечение</span></p>
+        <div class="posture-switch" role="radiogroup" aria-label="Где причина">
+          <span class="posture-ctrl__label">Где причина</span>
+          <div class="posture-switch__btns">
+            <button type="button" role="radio" aria-checked="true" data-cause="low">Внизу — стопа</button>
+            <button type="button" role="radio" aria-checked="false" data-cause="high">Вверху — голова и шея</button>
+          </div>
+        </div>
         <label class="posture-ctrl">
-          <span class="posture-ctrl__label">Ограничение на периферии</span>
+          <span class="posture-ctrl__label">Ограничение</span>
           <input type="range" min="0" max="100" value="0" data-posture-range>
           <span class="posture-ctrl__scale" aria-hidden="true"><span>нет</span><span>выражено</span></span>
         </label>
       </div>
     </div>
 
-    <div class="grid-split">
-      <p>Поэтому работа начинается не там, где неприятно. Направление задаёт принцип «от периферии к центру»: сначала снимается то, что мешает по краю цепи, и только потом становится видно, что происходит в её середине.</p>
-      <p>Причина не обязана быть суставной, а движение не обязано идти снизу вверх. Что именно окажется ключевым — мобильность, локальная стабилизация или крупные группы — заранее не предсказать. Это выясняется по ходу: гипотеза, тест, ретест.</p>
-    </div>
+    <p class="diverge__after">Поэтому работа начинается не с места боли, а с поиска причины. Где она окажется — ниже, выше или совсем в другой зоне, — показывает тест, а не предположение.</p>
   </div>
 </section>
 
@@ -178,27 +201,27 @@
 
     <ol class="rules">
       <li data-anim>
-        <span class="rules__n">01</span>
+        <div class="rules__mark"><span class="rules__ico"><svg viewBox="0 0 64 64" aria-hidden="true"><line class="ri-axis" x1="32" y1="6" x2="32" y2="58"/><circle class="ri-dot" cx="32" cy="14" r="2.6"/><circle class="ri-dot ri-off" cx="41" cy="32" r="2.6"/><line class="ri-acc" x1="32" y1="32" x2="38.5" y2="32"/><path class="ri-acc" d="M32 28v8M41 28v8"/><circle class="ri-dot" cx="32" cy="50" r="2.6"/></svg></span><span class="rules__n">01</span></div>
         <h3>Смотрим, а не гадаем</h3>
         <p>Провокационный тест даёт ответ до того, как начнётся работа. Первая развилка — острая боль или хроническая: у них разная логика. При хронике добавляется оценка постуры. Гипотеза, которую тест не подтвердил, отбрасывается, а не подгоняется под удобный ответ.</p>
       </li>
       <li data-anim>
-        <span class="rules__n">02</span>
+        <div class="rules__mark"><span class="rules__ico"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="ri-frame" d="M10 16V10h6M48 10h6v6M54 48v6h-6M16 54h-6v-6"/><line class="ri-axis" x1="32" y1="14" x2="32" y2="50"/><path class="ri-line" d="M35 15c2 6-1 10 1 17s-3 11-2 18"/><circle class="ri-dot ri-acc-fill" cx="36" cy="32" r="2.4"/></svg></span><span class="rules__n">02</span></div>
         <h3>Показываю на вас</h3>
         <p>Не на схеме из учебника и не на словах. Вы видите себя со стороны — на фото и видео — и понимаете, о чём идёт речь. Дальше вам не нужно верить мне на слово: вы смотрите на то же, на что смотрю я.</p>
       </li>
       <li data-anim>
-        <span class="rules__n">03</span>
+        <div class="rules__mark"><span class="rules__ico"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="ri-line" d="M30 8c3 8-2 14 0 22s3 14 0 26"/><circle class="ri-glow" cx="30" cy="30" r="7"/><circle class="ri-dot ri-acc-fill" cx="30" cy="30" r="2.4"/><circle class="ri-ring" cx="30" cy="54" r="5"/><path class="ri-acc ri-dash" d="M35 52c14-4 14-16 1-21"/></svg></span><span class="rules__n">03</span></div>
         <h3>Идём от периферии к центру</h3>
         <p>Не туда, где громче сигнал, а туда, откуда цепь начинает разваливаться. Направление не жёсткое правило, а решение под конкретную ситуацию.</p>
       </li>
       <li data-anim>
-        <span class="rules__n">04</span>
+        <div class="rules__mark"><span class="rules__ico"><svg viewBox="0 0 64 64" aria-hidden="true"><path class="ri-line" d="M8 44c10 0 12-22 24-22s14 16 24 12"/><circle class="ri-dot ri-ghost" cx="14" cy="40" r="1.8"/><circle class="ri-dot ri-ghost" cx="24" cy="27" r="1.8"/><circle class="ri-dot ri-ghost" cx="38" cy="25" r="1.8"/><circle class="ri-dot ri-acc-fill" cx="56" cy="34" r="2.6"/></svg></span><span class="rules__n">04</span></div>
         <h3>Двигаемся, а не разминаем</h3>
         <p>Пассивное воздействие приятно, но не оставляет следа в двигательном навыке. Устойчивым результат делает нервная система: она должна выучить новый способ движения, а не получить временное расслабление.</p>
       </li>
       <li data-anim>
-        <span class="rules__n">05</span>
+        <div class="rules__mark"><span class="rules__ico"><svg viewBox="0 0 64 64" aria-hidden="true"><line class="ri-floor" x1="6" y1="54" x2="58" y2="54"/><path class="ri-line" d="M10 54c8-2 12-14 22-18s14-14 20-22"/><circle class="ri-ring" cx="52" cy="14" r="6"/><path class="ri-acc" d="M49 14l2.4 2.4L56 11.6"/></svg></span><span class="rules__n">05</span></div>
         <h3>Проверяем на реальной жизни</h3>
         <p>Критерий — не ощущение в конце сессии, а конкретное действие за её пределами: пробежать, наклониться, поднять ребёнка. Задачу мы формулируем в самом начале и возвращаемся к ней как к мерке.</p>
       </li>
@@ -216,31 +239,30 @@
 
     <div class="method-head">
       <h2 class="pull pull--wide">
-        Каждый человек — отдельная задача. Что сработает, заранее неизвестно.<br>
-        <em>Но порядок, в котором тело готово принимать нагрузку, не меняется никогда.</em>
+        Каждый человек — отдельная задача. Что сработает и с чего начать, заранее неизвестно.<br>
+        <em>Это решает тест, а не готовая схема.</em>
       </h2>
       <div class="posture posture--method" data-mode="method" role="img"
-           aria-label="Схема осанки: точки возвращаются на ось от стопы вверх, от периферии к центру"></div>
+           aria-label="Схема осанки: точки возвращаются на ось, начиная с причины; сигнал гаснет последним"></div>
     </div>
 
-    <div class="seq" data-anim>
-      <div class="seq__line" aria-hidden="true"></div>
-      <ol class="seq__list">
-        <li><span class="seq__n">01</span><h3>Мобильность</h3><p>Вернуть телу диапазон, которого сейчас нет.</p></li>
-        <li><span class="seq__n">02</span><h3>Локальная стабилизация</h3><p>Научить удерживать этот диапазон, а не проваливаться обратно.</p></li>
-        <li><span class="seq__n">03</span><h3>Двигательный контроль</h3><p>Подключить крупные группы: сила в новом диапазоне, а не поверх старого.</p></li>
-        <li><span class="seq__n">04</span><h3>Интеграция</h3><p>Собрать движение в целостные паттерны — через Functional Patterns.</p></li>
-        <li><span class="seq__n">05</span><h3>Закрепление</h3><p>Силовая работа с сопротивлением: навык должен выдерживать нагрузку.</p></li>
-      </ol>
-    </div>
-
-    <div class="tools">
-      <p class="label">Инструментарий</p>
-      <ul>
-        <li>Mulligan</li><li>активный фасциальный релиз</li><li>Pilates</li><li>ПНФ</li>
-        <li>нейродинамика</li><li>Functional&nbsp;Patterns</li><li>силовая работа</li>
-      </ul>
-      <p class="tools__note">Инструмент выбирается под задачу и меняется после ретеста. Не наоборот.</p>
+    <div class="kit" data-anim>
+      <div class="kit__ring" data-kit-ring role="img" aria-label="Пять направлений работы по кругу: порядок между ними подбирается под человека"></div>
+      <div class="kit__side">
+        <p class="kit__lead">Пять направлений — не очередь, а набор. С чего начать и что пропустить, решает тест.</p>
+        <div class="kit__switch" role="radiogroup" aria-label="Пример маршрута">
+          <button type="button" role="radio" aria-checked="true" data-route="0">Пример 1</button>
+          <button type="button" role="radio" aria-checked="false" data-route="1">Пример 2</button>
+        </div>
+        <p class="kit__example" data-kit-caption></p>
+        <ul class="kit__list">
+          <li data-k="0"><h3>Мобильность</h3><p>Вернуть телу диапазон, которого сейчас нет.</p></li>
+          <li data-k="1"><h3>Локальная стабилизация</h3><p>Научить удерживать диапазон, а не проваливаться обратно.</p></li>
+          <li data-k="2"><h3>Двигательный контроль</h3><p>Подключить крупные группы: сила в новом диапазоне, а не поверх старого.</p></li>
+          <li data-k="3"><h3>Интеграция</h3><p>Собрать движение в целостные паттерны.</p></li>
+          <li data-k="4"><h3>Закрепление</h3><p>Силовая работа с сопротивлением: навык должен выдерживать нагрузку.</p></li>
+        </ul>
+      </div>
     </div>
 
     <div class="notes">
@@ -265,36 +287,40 @@
     <p class="sec__num"><b>V</b><i></i>Процесс</p>
     <div class="grid-lead">
       <h2 class="h-display">Как устроена работа</h2>
-      <p class="col-text lead">Без курсов, абонементов и обязательств, взятых заранее. Каждый шаг — самостоятельная единица, после которой можно остановиться.</p>
     </div>
 
-    <div class="steps">
-      <article class="step" data-anim>
-        <p class="step__meta"><b>Шаг первый</b><span>60 минут</span></p>
-        <h3>Диагностическая встреча</h3>
-        <p>Тестирование, наглядный разбор на вас самих и реальное облегчение уже в этот день. Она не входит в блок и ни к чему не обязывает: можно прийти только за пониманием, где на самом деле причина.</p>
-      </article>
-      <article class="step" data-anim>
-        <p class="step__meta"><b>Шаг второй</b><span>10 встреч · 2 раза в неделю · ~1,5 месяца</span></p>
-        <h3>Блок</h3>
-        <p>Реалистичный срок, чтобы решить конкретную задачу, обозначенную на входе. Внутри блока план пересобирается после каждого ретеста — расписания «курса» здесь нет.</p>
-      </article>
-      <article class="step" data-anim>
-        <p class="step__meta"><b>Между встречами</b><span>без контроля дисциплины</span></p>
+    <ol class="stepper">
+      <li class="stepper__item" data-anim>
+        <span class="stepper__n" aria-hidden="true">1</span>
+        <p class="stepper__meta">Шаг первый · 90 минут</p>
+        <h3>Диагностика</h3>
+        <p>Полный анамнез: что беспокоит и что вы чувствуете. Фото, видео и тесты — и разбор прямо на вас: что происходит и почему. На этой встрече мы не тренируемся, она целиком про понимание. В блок не входит и ни к чему не обязывает.</p>
+      </li>
+      <li class="stepper__item" data-anim>
+        <span class="stepper__n" aria-hidden="true">2</span>
+        <p class="stepper__meta">Шаг второй · 10 встреч · 2 раза в неделю · ~1,5 месяца</p>
+        <h3>Блок встреч</h3>
+        <p>Реалистичный срок, чтобы решить конкретную задачу, обозначенную на входе.</p>
+      </li>
+      <li class="stepper__item" data-anim>
+        <span class="stepper__n" aria-hidden="true">3</span>
+        <p class="stepper__meta">Шаг третий · по жизненному тесту</p>
+        <h3>Завершение</h3>
+        <p>Не когда закончились занятия, а когда вы делаете то, ради чего пришли: бегаете, наклоняетесь, поднимаете ребёнка.</p>
+      </li>
+    </ol>
+
+    <div class="along">
+      <p class="along__label">Всё это время</p>
+      <article class="along__item" data-anim>
         <h3>Связь и домашняя работа</h3>
         <p>Живая связь между сессиями, обычным языком, без формальностей. Домашняя работа — не всем и не всегда; если она есть, это до десяти минут. Я не проверяю, сделали вы её или нет.</p>
       </article>
-      <article class="step" data-anim>
-        <p class="step__meta"><b>Контроль</b><span>по фактам, не по ощущениям</span></p>
-        <h3>Динамика</h3>
+      <article class="along__item" data-anim>
+        <h3>Динамика по фактам</h3>
         <p>Тесты, фото и видео до и после. Ощущение «вроде получше» не считается результатом — оно слишком легко объясняется настроением и погодой.</p>
       </article>
     </div>
-
-    <p class="pull pull--right">
-      Завершение — не когда закончились занятия,<br>
-      <em>а когда вы делаете то, ради чего пришли.</em>
-    </p>
   </div>
   <svg class="thread thread--flip" viewBox="0 0 1200 150" fill="none" aria-hidden="true" preserveAspectRatio="none">
     <path d="M1200 20 C 900 20, 880 128, 600 128 C 330 128, 300 40, 0 40" stroke="currentColor" stroke-width="1" vector-effect="non-scaling-stroke"/>
@@ -432,9 +458,9 @@
         </figure>
       </div>
       <div class="col-text">
-        <p class="lead">Профессиональный футбол, потом шестнадцать лет практики. Между этими двумя точками — причина, по которой я работаю именно так, а не иначе.</p>
-        <p>В футболе тело — рабочий инструмент, и нерешённая проблема считается не в дискомфорте, а в пропущенных сезонах. Там и стало очевидно то, на чём позже построился весь метод: болит почти никогда не там, где нарушение.</p>
-        <p>Шестнадцать с лишним лет практики ушли на то, чтобы превратить это наблюдение в процедуру — воспроизводимую, проверяемую тестом и не зависящую от того, насколько удачно я сегодня угадываю. Поэтому на сессии я показываю вам не свою уверенность, а результат теста.</p>
+        <p class="lead">Метод вырос не из одного вида спорта, а из многолетнего наблюдения за людьми — и за тем, как одни и те же схемы компенсации повторяются у самых разных тел.</p>
+        <p>Профессиональный футбол — одна из отправных точек: там тело — рабочий инструмент, и хорошо видно, как одна проблема тянет за собой другую. Дальше были годы практики, в которых это наблюдение превратилось в процедуру: тест, разбор, проверка результата.</p>
+        <p>Поэтому на сессии я показываю вам не свою уверенность, а результат теста.</p>
       </div>
     </div>
     <ul class="ticker">
@@ -458,23 +484,42 @@
       <p class="col-text lead">Прежде всего — тем, кто уже пробовал массаж, ЛФК и обезболивание и устал от решений, которых хватает на неделю.</p>
     </div>
 
-    <div class="who">
-      <article class="who__item" data-anim>
-        <p class="label">Основное</p>
-        <p>Хроническое напряжение и боль без явного травматического момента — 20–60+ лет. Отдельно заметная группа: женщины 20–25 лет с уже выраженными проблемами позвоночника. Второй запрос, не менее частый, чем боль, — вернуть энергию, которая уходит на компенсацию.</p>
+    <p class="who__hint">Отметьте, что про вас</p>
+    <div class="who-grid">
+      <article class="who-card" data-anim role="checkbox" aria-checked="false" tabindex="0">
+        <span class="who-card__mark" aria-hidden="true"></span>
+        <h3>Напряжение или боль без явной травмы</h3>
+        <p>Хроническое напряжение и боль без явного травматического момента — 20–60+ лет. Отдельно заметная группа: женщины 20–25 лет с уже выраженными проблемами позвоночника.</p>
       </article>
-      <article class="who__item" data-anim>
-        <p class="label">После острой травмы</p>
+      <article class="who-card" data-anim role="checkbox" aria-checked="false" tabindex="0">
+        <span class="who-card__mark" aria-hidden="true"></span>
+        <h3>К вечеру не остаётся энергии</h3>
+        <p>Запрос, не менее частый, чем боль, — вернуть энергию, которая уходит на компенсацию.</p>
+      </article>
+      <article class="who-card" data-anim role="checkbox" aria-checked="false" tabindex="0">
+        <span class="who-card__mark" aria-hidden="true"></span>
+        <h3>После острой травмы</h3>
         <p>Спортсмены и активные люди, где приоритет — скорость возвращения в форму без потери качества движения.</p>
       </article>
-      <article class="who__item" data-anim>
-        <p class="label">После операций</p>
+      <article class="who-card" data-anim role="checkbox" aria-checked="false" tabindex="0">
+        <span class="who-card__mark" aria-hidden="true"></span>
+        <h3>После операции</h3>
         <p>Работа совместно с протоколом врача, а не вместо него и не в обход него.</p>
       </article>
-      <article class="who__item" data-anim>
-        <p class="label">Отдельно — дети 7–12 лет</p>
-        <p>Сколиоз до второй степени, юные спортсмены и просто активные дети, включая тех, кто спортом не занимается.</p>
+      <article class="who-card" data-anim role="checkbox" aria-checked="false" tabindex="0">
+        <span class="who-card__mark" aria-hidden="true"></span>
+        <h3>Дети и подростки 7–16 лет</h3>
+        <p>Сколиоз до второй степени, юные спортсмены и просто активные дети и подростки, включая тех, кто спортом не занимается.</p>
       </article>
+      <article class="who-card" data-anim role="checkbox" aria-checked="false" tabindex="0">
+        <span class="who-card__mark" aria-hidden="true"></span>
+        <h3>Хочется двигаться качественно — надолго</h3>
+        <p>Острой проблемы нет, но хочется движения, которое работает на самочувствие на годы вперёд, — а не только на то, чтобы накачаться или «держать форму».</p>
+      </article>
+    </div>
+    <div class="who__cta" hidden>
+      <p>Похоже, это про вас. Начать стоит с диагностики.</p>
+      <a class="who__cta-link" href="#start">Как записаться</a>
     </div>
   </div>
   <svg class="thread" viewBox="0 0 1200 150" fill="none" aria-hidden="true" preserveAspectRatio="none">
@@ -491,11 +536,22 @@
       <p class="col-text lead">Всё, что имеет смысл знать до первого сообщения. Без мелкого шрифта и без выгоды, которая появляется, только если заплатить сразу побольше.</p>
     </div>
 
-    <div class="price">
+    <div class="price price--3">
+      <div class="price__item price__item--main" data-anim>
+        <p class="price__label">Диагностика</p>
+        <p class="price__val">10 000 <span>₽</span></p>
+        <p class="price__note">90 минут. Отдельная встреча: не входит в блок и не обязывает продолжать.</p>
+        <ul class="price__inc">
+          <li>анамнез: что беспокоит и что вы чувствуете</li>
+          <li>фото и видео</li>
+          <li>тесты</li>
+          <li>разбор результатов прямо на вас</li>
+        </ul>
+      </div>
       <div class="price__item" data-anim>
-        <p class="price__label">Диагностическая встреча</p>
+        <p class="price__label">Встреча</p>
         <p class="price__val">7 000 <span>₽</span></p>
-        <p class="price__note">60 минут. Самостоятельная единица: не входит в блок и не обязывает продолжать.</p>
+        <p class="price__note">60 минут, один на один.</p>
       </div>
       <div class="price__item" data-anim>
         <p class="price__label">Блок из 10 встреч</p>
@@ -504,7 +560,7 @@
       </div>
     </div>
 
-    <div class="terms-grid">
+    <div class="terms-grid terms-grid--cards">
       <article class="term" data-anim>
         <h3>Оплата</h3>
         <p>Весь блок сразу — слоты в расписании закреплены за вами. Или по мере прохождения — тогда слоты заранее не гарантированы. Оба варианта нормальны, и второй не хуже первого.</p>
@@ -539,7 +595,7 @@
     </svg>
 
     <div class="start__grid">
-      <p class="start__text">Шестьдесят минут: тестирование, разбор на вас самих и понятный ответ на вопрос, где причина и что с ней делать. Продолжение — ваше решение, а не условие сделки.</p>
+      <p class="start__text">Полтора часа: анамнез, тесты, фото и видео — и понятный ответ на вопрос, где причина и что с ней делать. Продолжение — ваше решение, а не условие сделки.</p>
       <div class="start__cta">
         <!-- ЗАМЕНИТЬ: рабочая ссылка на Telegram -->
         <a class="btn" href="https://t.me/CHANGE_ME" rel="noopener">
@@ -592,6 +648,7 @@
 </script>
 <script src="assets/js/main.js" defer></script>
 <script src="assets/js/posture.js" defer></script>
+<script src="assets/js/blocks.js" defer></script>
 <script src="assets/js/editor.js" defer></script>
 </body>
 </html>
